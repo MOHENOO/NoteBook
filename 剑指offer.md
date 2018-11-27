@@ -48,8 +48,7 @@ class Solution:
 ```python
 def printListFromTailToHead(self, listNode):
     # write code here
-    ListNode p1,p2,p3
-    if(listNode!=None or listNode.next!=None):
+    if(listNode==None or listNode.next==None):
         return listNode
     p1,p2=listNode,listNode.next
     while p2:
@@ -166,3 +165,82 @@ class Solution:
 ```
 
 Exam:1,2,4,8
+
+10. 我们可以用2*1的小矩形横着或者竖着去覆盖更大的矩形。请问用n个2*1的小矩形无重叠地覆盖一个2*n的大矩形，总共有多少种方法？
+
+```python
+# -*- coding:utf-8 -*-
+class Solution:
+    def rectCover(self, number):
+        # write code here
+        if number == 0:
+            return 0
+        a, b = 1, 1
+        for i in range(number):
+            a, b = b, a + b
+        return a
+```
+Exam:0,1,2,3,5
+
+11. 输入一个整数，输出该数二进制表示中1的个数。其中负数用补码表示。
+
+```python
+# -*- coding:utf-8 -*-
+class Solution:
+    def NumberOf1(self, n):
+        # write code here
+        count = 0
+        while n&0xffffffff != 0:
+            count += 1
+            n = n & (n-1)
+        return count
+```
+相邻两数只有一位不同，相与后最低位1变为0，实现计数1。
+python3 int类型无长度限制。人为通过与0xffffffff(二的32次方-1)相与实现位数限制。
+
+12. 给定一个double类型的浮点数base和int类型的整数exponent。求base的exponent次方。
+
+```python
+# -*- coding:utf-8 -*-
+class Solution:
+    def Power(self, base, exponent):
+        # write code here
+        return base**exponent
+```
+
+13. 输入一个整数数组，实现一个函数来调整该数组中数字的顺序，使得所有的奇数位于数组的前半部分，所有的偶数位于数组的后半部分，并保证奇数和奇数，偶数和偶数之间的相对位置不变。
+
+```python
+# -*- coding:utf-8 -*-
+class Solution:
+    def reOrderArray(self, array):
+        # write code here
+        return [i for i in array if i%2!=0]+[j for j in array if j%2==0]
+```
+
+14. 输入一个链表，输出该链表中倒数第k个结点。
+
+```python
+# -*- coding:utf-8 -*-
+# class ListNode:
+#     def __init__(self, x):
+#         self.val = x
+#         self.next = None
+
+
+class Solution:
+    def FindKthToTail(self, head, k):
+        # write code here
+        if(head is None or head.next is None):
+            return head
+        p1, p2 = head, head.next
+        while p2:
+            p3 = p2.next
+            p2.next = p1
+            p1, p2 = p2, p3
+        head.next = None
+        result = p1
+        for i in range(1, k):
+            result = result.next
+        return result
+```
