@@ -244,3 +244,119 @@ class Solution:
             result = result.next
         return result
 ```
+
+15. 输入一个链表，反转链表后，输出新链表的表头。
+
+```python
+# -*- coding:utf-8 -*-
+# class ListNode:
+#     def __init__(self, x):
+#         self.val = x
+#         self.next = None
+class Solution:
+    # 返回ListNode
+    def ReverseList(self, pHead):
+        # write code here
+        if(pHead is None or pHead.next is None):
+            return pead
+        p1, p2 = pHead, pHead.next
+        while p2:
+            p3 = p2.next
+            p2.next = p1
+            p1, p2 = p2, p3
+        pHead.next = None
+        pHead = p1
+        return pHead
+```
+
+16. 输入两个单调递增的链表，输出两个链表合成后的链表，当然我们需要合成后的链表满足单调不减规则。
+
+```python
+# -*- coding:utf-8 -*-
+# class ListNode:
+#     def __init__(self, x):
+#         self.val = x
+#         self.next = None
+
+
+class Solution:
+    # 返回合并后列表
+    def Merge(self, pHead1, pHead2):
+        # write code here
+        head = ListNode(0)
+        result = head
+        while pHead1 and pHead2:
+            if pHead1.val < pHead2.val:
+                head.next = pHead1
+                pHead1 = pHead1.next
+            else:
+                head.next = pHead2
+                pHead2 = pHead2.next
+            head = head.next
+
+        if pHead1:
+            head.next = pHead1
+        if pHead2:
+            head.next = pHead2
+        return result.next
+```
+
+归并排序
+
+17. 输入两棵二叉树A，B，判断B是不是A的子结构。（ps：我们约定空树不是任意一个树的子结构）
+
+```python
+# -*- coding:utf-8 -*-
+# class TreeNode:
+#     def __init__(self, x):
+#         self.val = x
+#         self.left = None
+#         self.right = None
+
+
+class Solution:
+    def HasSubtree(self, pRoot1, pRoot2):
+        # write code here
+        if not(pRoot1 and pRoot2):
+            return False
+
+        result = False
+        if pRoot1.val == pRoot2.val:
+            result = self.isSubtree(pRoot1, pRoot2)
+        if not result:
+            result = self.HasSubtree(
+                pRoot1.left, pRoot2) | self.HasSubtree(pRoot1.right, pRoot2)
+        return result
+
+    def isSubtree(self, root1, root2):
+        if not root2:
+            return True
+        if not root1:
+            return False
+        if root1.val == root2.val:
+            return self.isSubtree(root1.left, root2.left) & self.isSubtree(root1.right, root2.right)
+        return False
+```
+
+18. 操作给定的二叉树，将其变换为源二叉树的镜像。
+
+```python
+# -*- coding:utf-8 -*-
+# class TreeNode:
+#     def __init__(self, x):
+#         self.val = x
+#         self.left = None
+#         self.right = None
+
+
+class Solution:
+    # 返回镜像树的根节点
+    def Mirror(self, root):
+        # write code here
+        if not root:
+            return root
+        root.left, root.right = root.right, root.left
+        self.Mirror(root.left)
+        self.Mirror(root.right)
+        return root
+```
