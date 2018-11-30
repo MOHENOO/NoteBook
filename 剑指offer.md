@@ -360,3 +360,89 @@ class Solution:
         self.Mirror(root.right)
         return root
 ```
+
+19. 输入一个矩阵，按照从外向里以顺时针的顺序依次打印出每一个数字，例如，如果输入如下4 X 4矩阵： 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 则依次打印出数字1,2,3,4,8,12,16,15,14,13,9,5,6,7,11,10.
+
+解法一：
+```python
+def printMatrix(matrix):
+    # write code here
+    result = []
+    while matrix:
+        result += matrix.pop(0)
+        if matrix:
+            matrix = list(map(list, zip(*matrix)))
+            matrix.reverse()
+    return result
+```
+
+解法二:
+```python
+# -*- coding:utf-8 -*-
+class Solution:
+    # matrix类型为二维列表，需要返回列表
+    def printMatrix(self, matrix):
+        # write code here
+        m, n = len(matrix[0]), len(matrix)
+        result = []
+        startx, endx = 0, m - 1
+        starty, endy = 0, n - 1
+        add = 1
+        while m > 0 and n > 0:
+            if add == 1:
+                for x in range(startx, endx + 1):
+                    result.append(matrix[starty][x])
+                starty += 1
+                n -= 1
+
+                if n > 0:
+                    for y in range(starty, endy + 1):
+                        result.append(matrix[y][endx])
+                    endx -= 1
+                    m -= 1
+            else:
+                for x in range(endx, startx - 1, -1):
+                    result.append(matrix[endy][x])
+                endy -= 1
+                n -= 1
+                if n > 0:
+                    for y in range(endy, starty - 1, -1):
+                        result.append(matrix[y][startx])
+                    m -= 1
+                startx += 1
+            add = -add
+        return result
+```
+
+20. 定义栈的数据结构，请在该类型中实现一个能够得到栈中所含最小元素的min函数（时间复杂度应为O（1））。
+
+```python
+# -*- coding:utf-8 -*-
+class Solution:
+    def __init__(self):
+        self.stack = []
+        self.minstack = []
+
+    def push(self, node):
+        # write code here
+        self.stack.append(node)
+        if self.minstack == [] or node < self.min():
+            self.minstack.append(node)
+        else:
+            self.minstack.append(self.min())
+
+    def pop(self):
+        # write code here
+        if self.minstack == [] or self.stack == []:
+            return None
+        self.minstack.pop()
+        self.stack.pop()
+
+    def top(self):
+        # write code here
+        return self.stack[-1]
+
+    def min(self):
+        # write code here
+        return self.minstack[-1]
+```
