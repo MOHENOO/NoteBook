@@ -446,3 +446,81 @@ class Solution:
         # write code here
         return self.minstack[-1]
 ```
+
+21. 输入两个整数序列，第一个序列表示栈的压入顺序，请判断第二个序列是否可能为该栈的弹出顺序。假设压入栈的所有数字均不相等。例如序列1,2,3,4,5是某栈的压入顺序，序列4,5,3,2,1是该压栈序列对应的一个弹出序列，但4,3,5,1,2就不可能是该压栈序列的弹出序列。（注意：这两个序列的长度是相等的）
+
+```python
+# -*- coding:utf-8 -*-
+class Solution:
+    def IsPopOrder(self, pushV, popV):
+        # write code here
+        if pushV == [] or len(pushV) != len(popV):
+            return False
+        stack = []
+        while pushV != []:
+            if stack == [] or stack[-1] != popV[0]:
+                stack.append(pushV.pop(0))
+            if stack[-1] == popV[0]:
+                stack.pop()
+                popV.pop(0)
+        if stack == popV[::-1]:
+            return True
+        return False
+```
+
+22. 从上往下打印出二叉树的每个节点，同层节点从左至右打印。
+
+```python
+# -*- coding:utf-8 -*-
+# class TreeNode:
+#     def __init__(self, x):
+#         self.val = x
+#         self.left = None
+#         self.right = None
+
+
+class Solution:
+    # 返回从上到下每个节点值列表，例：[1,2,3]
+    def PrintFromTopToBottom(root):
+        # write code here
+        result = []
+        if not root:
+            return result
+        queue = [root]
+        while queue != []:
+            node = queue.pop(0)
+            result.append(node.val)
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+        return result
+```
+
+层次遍历
+
+23. 输入一个整数数组，判断该数组是不是某二叉搜索树的后序遍历的结果。如果是则输出Yes,否则输出No。假设输入的数组的任意两个数字都互不相同。
+
+```python
+# -*- coding:utf-8 -*-
+class Solution:
+    def VerifySquenceOfBST(self, sequence):
+        # write code here
+        if not sequence:
+            return False
+        if len(sequence) == 1:
+            return True
+        root = sequence[-1]
+        flag_min = True
+        maxindex = 0
+        for i in range(len(sequence) - 1):
+            if sequence[i] > root:
+                flag_min = False
+                maxindex = i
+                break
+        if not flag_min:
+            for i in range(maxindex, len(sequence) - 1):
+                if sequence[i] < root:
+                    return False
+        return True
+```
