@@ -47,7 +47,7 @@ class Solution:
 ```python
 def printListFromTailToHead(self, listNode):
     # write code here
-    if(listNode==None or listNode.next==None):
+    if not listNode or not listNode.next:
         return listNode
     p1,p2=listNode,listNode.next
     while p2:
@@ -107,8 +107,7 @@ class Solution:
         return self.Stack2.pop()
 ```
 
-6\.
-把一个数组最开始的若干个元素搬到数组的末尾，我们称之为数组的旋转。 输入一个非减排序的数组的一个旋转，输出旋转数组的最小元素。 例如数组{3,4,5,1,2}为{1,2,3,4,5}的一个旋转，该数组的最小值为1。 NOTE：给出的所有元素都大于0，若数组大小为0，请返回0。
+6.  把一个数组最开始的若干个元素搬到数组的末尾，我们称之为数组的旋转。 输入一个非减排序的数组的一个旋转，输出旋转数组的最小元素。 例如数组{3,4,5,1,2}为{1,2,3,4,5}的一个旋转，该数组的最小值为1。 NOTE：给出的所有元素都大于0，若数组大小为0，请返回0。
 
 ```python
 # -*- coding:utf-8 -*-
@@ -594,3 +593,102 @@ class Solution:
         self.Convert(pRootOfTree.right)
         return self.listHead
 ```
+
+26. 输入一个字符串,按字典序打印出该字符串中字符的所有排列。例如输入字符串abc,则打印出由字符a,b,c所能排列出来的所有字符串abc,acb,bac,bca,cab和cba。
+输入描述:
+输入一个字符串,长度不超过9(可能有字符重复),字符只包括大小写字母。
+
+```python
+# -*- coding:utf-8 -*-
+class Solution:
+    def Permutation(self, ss):
+        # write code here
+        result = []
+        if not ss:
+            return result
+        path = ''
+        self.part(ss, result, path)
+        return sorted(list(set(result)))
+
+    def part(self, ss, result, path):
+        if not ss:
+            result.append(path)
+        else:
+            for i in range(len(ss)):
+                self.part(ss[:i] + ss[i + 1:], result, path + ss[i])
+```
+
+27. 数组中有一个数字出现的次数超过数组长度的一半，请找出这个数字。例如输入一个长度为9的数组{1,2,3,2,2,2,5,4,2}。由于数字2在数组中出现了5次，超过数组长度的一半，因此输出2。如果不存在则输出0。
+
+```python
+# -*- coding:utf-8 -*-
+class Solution:
+    def MoreThanHalfNum_Solution(self, numbers):
+        # write code here
+        length = len(numbers)
+        dist_num = {}
+        for i in numbers:
+            if i not in dist_num:
+                dist_num[i] = 1
+            else:
+                dist_num[i] += 1
+            if dist_num[i] == (length // 2 + 1):
+                return i
+        return 0
+```
+
+28. 输入n个整数，找出其中最小的K个数。例如输入4,5,1,6,2,7,3,8这8个数字，则最小的4个数字是1,2,3,4,。
+
+堆排序(小根堆)
+```python
+# -*- coding:utf-8 -*-
+import heapq
+class Solution:
+    def GetLeastNumbers_Solution(self, tinput, k):
+        # write code here
+        if len(tinput) < k:
+            return []
+        return heapq.nsmallest(k, tinput)
+```
+
+29. HZ偶尔会拿些专业问题来忽悠那些非计算机专业的同学。今天测试组开完会后,他又发话了:在古老的一维模式识别中,常常需要计算连续子向量的最大和,当向量全为正数的时候,问题很好解决。但是,如果向量中包含负数,是否应该包含某个负数,并期望旁边的正数会弥补它呢？例如:{6,-3,-2,7,-15,1,2,2},连续子向量的最大和为8(从第0个开始,到第3个为止)。给一个数组，返回它的最大连续子序列的和，你会不会被他忽悠住？(子向量的长度至少是1)
+
+```python
+# -*- coding:utf-8 -*-
+class Solution:
+    def FindGreatestSumOfSubArray(self, array):
+        # write code here
+        result, addnum = array[0], array[0]
+        for i in array[1:]:
+            if addnum < 0:
+                addnum = i
+            else:
+                addnum += i
+            if addnum > result:
+                result = addnum
+        return result
+```
+
+30. 求出1~13的整数中1出现的次数,并算出100~1300的整数中1出现的次数？为此他特别数了一下1~13中包含1的数字有1、10、11、12、13因此共出现6次,但是对于后面问题他就没辙了。ACMer希望你们帮帮他,并把问题更加普遍化,可以很快的求出任意非负整数区间中1出现的次数（从1 到 n 中1出现的次数）。
+
+```python
+# -*- coding:utf-8 -*-
+class Solution:
+    def NumberOf1Between1AndN_Solution(self, n):
+        # write code here
+        count = 0
+        i = 1
+        while i <= n:
+            count += (n // i + 8) // 10 * i + (n // i % 10 == 1) * (n % i + 1)
+            i *= 10
+        return count
+```
+
+设定整数点（如1、10、100等等）作为位置点i（对应n的各位、十位、百位等等），分别对每个数位上有多少包含1的点进行分析。
+
+根据设定的整数位置，对n进行分割，分为两部分，高位n/i，低位n%i
+当i表示百位，且百位对应的数>=2,如n=31456,i=100，则a=314,b=56，此时百位为1的次数有a/10+1=32（最高两位0~31），每一次都包含100个连续的点，即共有(a/10+1)*100个点的百位为1
+当i表示百位，且百位对应的数为1，如n=31156,i=100，则a=311,b=56，此时百位对应的就是1，则共有a/10(最高两位0-30)次是包含100个连续点，当最高两位为31（即a=311），本次只对应局部点00~56，共b+1次，所有点加起来共有（a/10*100）+(b+1)，这些点百位对应为1
+当i表示百位，且百位对应的数为0,如n=31056,i=100，则a=310,b=56，此时百位为1的次数有a/10=31（最高两位0~30）
+综合以上三种情况，当百位对应0或>=2时，有(a+8)/10次包含所有100个点，还有当百位为1(a%10==1)，需要增加局部点b+1
+之所以补8，是因为当百位为0，则a/10==(a+8)/10，当百位>=2，补8会产生进位位，效果等同于(a/10+1)
