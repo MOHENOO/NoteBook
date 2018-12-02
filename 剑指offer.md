@@ -1,4 +1,4 @@
-2. 请实现一个函数，将一个字符串中的每个空格替换成“%20”。例如，当字符串为We Are Happy.则经过替换之后的字符串为We%20Are%20Happy。
+2.  请实现一个函数，将一个字符串中的每个空格替换成“%20”。例如，当字符串为We Are Happy.则经过替换之后的字符串为We%20Are%20Happy。
 
 解法一(效率低):
 
@@ -22,8 +22,7 @@
 	return s.replace(' ','%20')
 ```
 
-3. 输入一个链表，按链表值从尾到头的顺序返回一个ArrayList。
-
+3.  输入一个链表，按链表值从尾到头的顺序返回一个ArrayList。
 
 ```python
 # -*- coding:utf-8 -*-
@@ -62,7 +61,7 @@ def printListFromTailToHead(self, listNode):
     return listNode
 ```
 
-4. 输入某二叉树的前序遍历和中序遍历的结果，请重建出该二叉树。假设输入的前序遍历和中序遍历的结果中都不含重复的数字。例如输入前序遍历序列{1,2,4,7,3,5,6,8}和中序遍历序列{4,7,2,1,5,3,8,6}，则重建二叉树并返回。
+4.  输入某二叉树的前序遍历和中序遍历的结果，请重建出该二叉树。假设输入的前序遍历和中序遍历的结果中都不含重复的数字。例如输入前序遍历序列{1,2,4,7,3,5,6,8}和中序遍历序列{4,7,2,1,5,3,8,6}，则重建二叉树并返回。
 
 ```python
 # -*- coding:utf-8 -*-
@@ -86,7 +85,7 @@ class Solution:
             return root
 ```
 
-5. 用两个栈来实现一个队列，完成队列的Push和Pop操作。 队列中的元素为int类型。
+5.  用两个栈来实现一个队列，完成队列的Push和Pop操作。 队列中的元素为int类型。
 
 ```python
 # -*- coding:utf-8 -*-
@@ -108,7 +107,7 @@ class Solution:
         return self.Stack2.pop()
 ```
 
-6.
+6\.
 把一个数组最开始的若干个元素搬到数组的末尾，我们称之为数组的旋转。 输入一个非减排序的数组的一个旋转，输出旋转数组的最小元素。 例如数组{3,4,5,1,2}为{1,2,3,4,5}的一个旋转，该数组的最小值为1。 NOTE：给出的所有元素都大于0，若数组大小为0，请返回0。
 
 ```python
@@ -123,8 +122,8 @@ class Solution:
                 return rotateArray[i+1]
 ```
 
-7. 大家都知道斐波那契数列，现在要求输入一个整数n，请你输出斐波那契数列的第n项（从0开始，第0项为0）。
-n<=39
+7.  大家都知道斐波那契数列，现在要求输入一个整数n，请你输出斐波那契数列的第n项（从0开始，第0项为0）。
+    n&lt;=39
 
 ```python
 # -*- coding:utf-8 -*-
@@ -135,10 +134,9 @@ class Solution:
         for i in range(n):
             a, b = b, a + b
         return a
-
 ```
 
-8. 一只青蛙一次可以跳上1级台阶，也可以跳上2级。求该青蛙跳上一个n级的台阶总共有多少种跳法（先后次序不同算不同的结果）。
+8.  一只青蛙一次可以跳上1级台阶，也可以跳上2级。求该青蛙跳上一个n级的台阶总共有多少种跳法（先后次序不同算不同的结果）。
 
 ```python
 # -*- coding:utf-8 -*-
@@ -153,8 +151,7 @@ class Solution:
 
 Exam: 1,2,3,5
 
-9. 一只青蛙一次可以跳上1级台阶，也可以跳上2级……它也可以跳上n级。求该青蛙跳上一个n级的台阶总共有多少种跳法。
-
+9.  一只青蛙一次可以跳上1级台阶，也可以跳上2级……它也可以跳上n级。求该青蛙跳上一个n级的台阶总共有多少种跳法。
 
 ```python
 # -*- coding:utf-8 -*-
@@ -166,7 +163,7 @@ class Solution:
 
 Exam:1,2,4,8
 
-10. 我们可以用2*1的小矩形横着或者竖着去覆盖更大的矩形。请问用n个2*1的小矩形无重叠地覆盖一个2*n的大矩形，总共有多少种方法？
+10. 我们可以用2_1的小矩形横着或者竖着去覆盖更大的矩形。请问用n个2_1的小矩形无重叠地覆盖一个2\*n的大矩形，总共有多少种方法？
 
 ```python
 # -*- coding:utf-8 -*-
@@ -180,6 +177,7 @@ class Solution:
             a, b = b, a + b
         return a
 ```
+
 Exam:0,1,2,3,5
 
 11. 输入一个整数，输出该数二进制表示中1的个数。其中负数用补码表示。
@@ -195,6 +193,7 @@ class Solution:
             n = n & (n-1)
         return count
 ```
+
 相邻两数只有一位不同，相与后最低位1变为0，实现计数1。
 python3 int类型无长度限制。人为通过与0xffffffff(二的32次方-1)相与实现位数限制。
 
@@ -364,6 +363,7 @@ class Solution:
 19. 输入一个矩阵，按照从外向里以顺时针的顺序依次打印出每一个数字，例如，如果输入如下4 X 4矩阵： 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 则依次打印出数字1,2,3,4,8,12,16,15,14,13,9,5,6,7,11,10.
 
 解法一：
+
 ```python
 def printMatrix(matrix):
     # write code here
@@ -377,6 +377,7 @@ def printMatrix(matrix):
 ```
 
 解法二:
+
 ```python
 # -*- coding:utf-8 -*-
 class Solution:
@@ -523,4 +524,73 @@ class Solution:
                 if sequence[i] < root:
                     return False
         return True
+```
+
+24. 输入一颗二叉树的跟节点和一个整数，打印出二叉树中结点值的和为输入整数的所有路径。路径定义为从树的根结点开始往下一直到叶结点所经过的结点形成一条路径。(注意: 在返回值的list中，数组长度大的数组靠前)
+
+```python
+# -*- coding:utf-8 -*-
+# class TreeNode:
+#     def __init__(self, x):
+#         self.val = x
+#         self.left = None
+#         self.right = None
+class Solution:
+    # 返回二维列表，内部每个列表表示找到的路径
+    def FindPath(self, root, expectNumber):
+        # write code here
+        if not root:
+            return []
+        result = []
+        path = []
+        self.dfs(root, expectNumber, result, path)
+        result.sort()
+        return result
+
+    def dfs(self, root, target, result, path):
+        if not root:
+            return
+        path.append(root.val)
+        if not root.left and not root.right and target == root.val:
+            result.append(path[:])
+
+        if root.left:
+            self.dfs(root.left, target - root.val, result, path)
+        if root.right:
+            self.dfs(root.right, target - root.val, result, path)
+
+        path.pop()
+```
+
+25. 输入一棵二叉搜索树，将该二叉搜索树转换成一个排序的双向链表。要求不能创建任何新的结点，只能调整树中结点指针的指向。
+
+```python
+# -*- coding:utf-8 -*-
+# class TreeNode:
+#     def __init__(self, x):
+#         self.val = x
+#         self.left = None
+#         self.right = None
+
+
+class Solution:
+    def __init__(self):
+        self.listHead = None
+        self.listTail = None
+
+    def Convert(self, pRootOfTree):
+        # write code here
+        if not pRootOfTree:
+            return
+
+        self.Convert(pRootOfTree.left)
+        if not self.listHead:
+            self.listHead = pRootOfTree
+            self.listTail = pRootOfTree
+        else:
+            self.listTail.right = pRootOfTree
+            pRootOfTree.left = self.listTail
+            self.listTail = pRootOfTree
+        self.Convert(pRootOfTree.right)
+        return self.listHead
 ```
