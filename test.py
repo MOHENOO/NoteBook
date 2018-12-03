@@ -1,17 +1,12 @@
 # -*- coding:utf-8 -*-
 class Solution:
-    def Permutation(self, ss):
+    def PrintMinNumber(self, numbers):
         # write code here
-        result = []
-        if not ss:
-            return result
-        path = ''
-        self.part(ss, result, path)
-        return sorted(list(set(result)))
-
-    def part(self, ss, result, path):
-        if not ss:
-            result.append(path)
-        else:
-            for i in range(len(ss)):
-                self.part(ss[:i] + ss[i + 1:], result, path + ss[i])
+        if not numbers:
+            return ''
+        ss = [str(i) for i in numbers]
+        left = self.PrintMinNumber(
+            [i for i in ss[1:] if (i + ss[0]) < (ss[0] + i)])
+        right = self.PrintMinNumber(
+            [i for i in ss[1:] if i + ss[0] >= ss[0] + i])
+        return int(''.join(left + [ss[0]] + righ))

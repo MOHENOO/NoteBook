@@ -525,7 +525,31 @@ class Solution:
         return True
 ```
 
-24. 输入一颗二叉树的跟节点和一个整数，打印出二叉树中结点值的和为输入整数的所有路径。路径定义为从树的根结点开始往下一直到叶结点所经过的结点形成一条路径。(注意: 在返回值的list中，数组长度大的数组靠前)
+24. 输入一个复杂链表（每个节点中有节点值，以及两个指针，一个指向下一个节点，另一个特殊指针指向任意一个节点），返回结果为复制后复杂链表的head。（注意，输出结果中请不要返回参数中的节点引用，否则判题程序会直接返回空）
+
+```python
+# -*- coding:utf-8 -*-
+# class RandomListNode:
+#     def __init__(self, x):
+#         self.label = x
+#         self.next = None
+#         self.random = None
+class Solution:
+    # 返回 RandomListNode
+    def Clone(self, pHead):
+        # write code here
+        if not pHead:
+            return None
+
+        node = RandomListNode(pHead.label)
+        node.next = pHead.next
+        node.random = pHead.random
+        node.next = self.Clone(pHead.next)
+
+        return node
+```
+
+25. 输入一颗二叉树的跟节点和一个整数，打印出二叉树中结点值的和为输入整数的所有路径。路径定义为从树的根结点开始往下一直到叶结点所经过的结点形成一条路径。(注意: 在返回值的list中，数组长度大的数组靠前)
 
 ```python
 # -*- coding:utf-8 -*-
@@ -561,7 +585,7 @@ class Solution:
         path.pop()
 ```
 
-25. 输入一棵二叉搜索树，将该二叉搜索树转换成一个排序的双向链表。要求不能创建任何新的结点，只能调整树中结点指针的指向。
+26. 输入一棵二叉搜索树，将该二叉搜索树转换成一个排序的双向链表。要求不能创建任何新的结点，只能调整树中结点指针的指向。
 
 ```python
 # -*- coding:utf-8 -*-
@@ -594,7 +618,7 @@ class Solution:
         return self.listHead
 ```
 
-26. 输入一个字符串,按字典序打印出该字符串中字符的所有排列。例如输入字符串abc,则打印出由字符a,b,c所能排列出来的所有字符串abc,acb,bac,bca,cab和cba。
+27. 输入一个字符串,按字典序打印出该字符串中字符的所有排列。例如输入字符串abc,则打印出由字符a,b,c所能排列出来的所有字符串abc,acb,bac,bca,cab和cba。
     输入描述:
     输入一个字符串,长度不超过9(可能有字符重复),字符只包括大小写字母。
 
@@ -618,7 +642,7 @@ class Solution:
                 self.part(ss[:i] + ss[i + 1:], result, path + ss[i])
 ```
 
-27. 数组中有一个数字出现的次数超过数组长度的一半，请找出这个数字。例如输入一个长度为9的数组{1,2,3,2,2,2,5,4,2}。由于数字2在数组中出现了5次，超过数组长度的一半，因此输出2。如果不存在则输出0。
+28. 数组中有一个数字出现的次数超过数组长度的一半，请找出这个数字。例如输入一个长度为9的数组{1,2,3,2,2,2,5,4,2}。由于数字2在数组中出现了5次，超过数组长度的一半，因此输出2。如果不存在则输出0。
 
 ```python
 # -*- coding:utf-8 -*-
@@ -637,7 +661,7 @@ class Solution:
         return 0
 ```
 
-28. 输入n个整数，找出其中最小的K个数。例如输入4,5,1,6,2,7,3,8这8个数字，则最小的4个数字是1,2,3,4,。
+29. 输入n个整数，找出其中最小的K个数。例如输入4,5,1,6,2,7,3,8这8个数字，则最小的4个数字是1,2,3,4,。
 
 堆排序(小根堆)
 
@@ -652,7 +676,7 @@ class Solution:
         return heapq.nsmallest(k, tinput)
 ```
 
-29. HZ偶尔会拿些专业问题来忽悠那些非计算机专业的同学。今天测试组开完会后,他又发话了:在古老的一维模式识别中,常常需要计算连续子向量的最大和,当向量全为正数的时候,问题很好解决。但是,如果向量中包含负数,是否应该包含某个负数,并期望旁边的正数会弥补它呢？例如:{6,-3,-2,7,-15,1,2,2},连续子向量的最大和为8(从第0个开始,到第3个为止)。给一个数组，返回它的最大连续子序列的和，你会不会被他忽悠住？(子向量的长度至少是1)
+30. HZ偶尔会拿些专业问题来忽悠那些非计算机专业的同学。今天测试组开完会后,他又发话了:在古老的一维模式识别中,常常需要计算连续子向量的最大和,当向量全为正数的时候,问题很好解决。但是,如果向量中包含负数,是否应该包含某个负数,并期望旁边的正数会弥补它呢？例如:{6,-3,-2,7,-15,1,2,2},连续子向量的最大和为8(从第0个开始,到第3个为止)。给一个数组，返回它的最大连续子序列的和，你会不会被他忽悠住？(子向量的长度至少是1)
 
 ```python
 # -*- coding:utf-8 -*-
@@ -670,7 +694,7 @@ class Solution:
         return result
 ```
 
-30. 求出1 ~ 13的整数中1出现的次数,并算出100 ~ 1300的整数中1出现的次数？为此他特别数了一下1 ~ 13中包含1的数字有1、10、11、12、13因此共出现6次,但是对于后面问题他就没辙了。ACMer希望你们帮帮他,并把问题更加普遍化,可以很快的求出任意非负整数区间中1出现的次数（从1 到 n 中1出现的次数）。
+31. 求出1 ~ 13的整数中1出现的次数,并算出100 ~ 1300的整数中1出现的次数？为此他特别数了一下1 ~ 13中包含1的数字有1、10、11、12、13因此共出现6次,但是对于后面问题他就没辙了。ACMer希望你们帮帮他,并把问题更加普遍化,可以很快的求出任意非负整数区间中1出现的次数（从1 到 n 中1出现的次数）。
 
 ```python
 # -*- coding:utf-8 -*-
@@ -705,3 +729,70 @@ class Solution:
 
 综合以上三种情况，当百位对应0或>=2时，有(a+8)/10次包含所有10
 0个点，还有当百位为1(a%10==1)，需要增加局部点b+1
+
+32. 输入一个正整数数组，把数组里所有数字拼接起来排成一个数，打印能拼接出的所有数字中最小的一个。例如输入数组{3，32，321}，则打印出这三个数字能排成的最小数字为321323。
+
+解法一：穷举法
+```python
+# -*- coding:utf-8 -*-
+class Solution:
+    def PrintMinNumber(self, numbers):
+        # write code here
+        if not numbers:
+            return ""
+        ss = [str(i) for i in numbers]
+        result = []
+        path = ''
+        self.part(ss, result, path)
+        return min([int(i) for i in result])
+
+    def part(self, ss, result, path):
+        if not ss:
+            result.append(path)
+        else:
+            for i in range(len(ss)):
+                self.part(ss[:i] + ss[i + 1:], result, path + ss[i])
+```
+
+解法二：特定规则的快排
+```python
+# -*- coding:utf-8 -*-
+class Solution:
+    def PrintMinNumber(self, numbers):
+        # write code here
+        if not numbers:
+            return ''
+        ss = [str(i) for i in numbers]
+        return int(''.join(self.quicksort(ss)))
+
+    def quicksort(self, ss):
+        if len(ss) < 2:
+            return ss[:]
+        left = self.quicksort([i for i in ss[1:] if (i + ss[0]) < (ss[0] + i)])
+        right = self.quicksort([i for i in ss[1:] if i + ss[0] >= ss[0] + i])
+        return left + [ss[0]] + right
+```
+
+33. 把只包含质因子2、3和5的数称作丑数（Ugly Number）。例如6、8都是丑数，但14不是，因为它包含质因子7。 习惯上我们把1当做是第一个丑数。求按从小到大的顺序的第N个丑数。
+
+```python
+# -*- coding:utf-8 -*-
+class Solution:
+    def GetUglyNumber_Solution(self, index):
+        # write code here
+        if index < 1:
+            return 0
+        result = [1]
+        t2, t3, t5 = 0, 0, 0
+        while len(result) < index:
+            minNum = (min(result[t2] * 2, result[t3] * 3, result[t5] * 5))
+            if minNum > result[-1]:
+                result.append(minNum)
+            if (result[-1] == result[t2] * 2):
+                t2 += 1
+            elif (result[-1] == result[t3] * 3):
+                t3 += 1
+            else:
+                t5 += 1
+        return result[-1]
+```
