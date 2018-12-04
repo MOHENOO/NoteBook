@@ -843,6 +843,7 @@ class Solution:
 ```
 
 36. 输入两个链表，找出它们的第一个公共结点。
+
 ```python
 # -*- coding:utf-8 -*-
 # class ListNode:
@@ -877,6 +878,7 @@ class Solution:
 ```
 
 37. 统计一个数字在排序数组中出现的次数。
+
 ```python
 # -*- coding:utf-8 -*-
 class Solution:
