@@ -796,3 +796,97 @@ class Solution:
                 t5 += 1
         return result[-1]
 ```
+
+34. 在一个字符串(0<=字符串长度<=10000，全部由字母组成)中找到第一个只出现一次的字符,并返回它的位置, 如果没有则返回 -1（需要区分大小写）.
+
+```python
+# -*- coding:utf-8 -*-
+class Solution:
+    def FirstNotRepeatingChar(self, s):
+        # write code here
+        for i in s:
+            if s.count(i) == 1:
+                return s.index(i)
+        return -1
+```
+
+35. 在数组中的两个数字，如果前面一个数字大于后面的数字，则这两个数字组成一个逆序对。输入一个数组,求出这个数组中的逆序对的总数P。并将P对1000000007取模的结果输出。 即输出P%1000000007
+输入描述:
+题目保证输入的数组中没有的相同的数字
+
+数据范围：
+
+	对于%50的数据,size<=10^4
+
+	对于%75的数据,size<=10^5
+
+	对于%100的数据,size<=2*10^5
+
+示例1
+输入
+1,2,3,4,5,6,7,0
+输出
+7
+
+```python
+# -*- coding:utf-8 -*-
+class Solution:
+    def InversePairs(self, data):
+        # write code here
+        sortData = sorted(data)
+        count = 0
+        for i in sortData:
+            pos = data.index(i)
+            count += pos
+            data.pop(pos)
+        return count
+```
+
+36. 输入两个链表，找出它们的第一个公共结点。
+```python
+# -*- coding:utf-8 -*-
+# class ListNode:
+#     def __init__(self, x):
+#         self.val = x
+#         self.next = None
+
+
+class Solution:
+    def FindFirstCommonNode(self, pHead1, pHead2):
+        # write code here
+        length1, length2 = 0, 0
+        q = pHead1
+        while q:
+            length1 += 1
+            q = q.next
+        p = pHead2
+        while p:
+            length2 += 1
+            p = p.next
+        length = length1 - length2
+        while length > 0:
+            pHead1 = pHead1.next
+            length -= 1
+        while length < 0:
+            pHead2 = pHead2.next
+            length += 1
+        while pHead1 != pHead2:
+            pHead1 = pHead1.next
+            pHead2 = pHead2.next
+        return pHead1
+```
+
+37. 统计一个数字在排序数组中出现的次数。
+```python
+# -*- coding:utf-8 -*-
+class Solution:
+    def GetNumberOfK(self, data, k):
+        # write code here
+        result = 0
+        for i in data:
+            if i == k:
+                result += 1
+            if i > k:
+                break
+        return result
+```
