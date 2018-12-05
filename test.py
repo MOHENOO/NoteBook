@@ -1,23 +1,24 @@
-class Solution:
-    def FindNumsAppearOnce(self, array):
-        if not array:
-            return []
-        # 对array中的数字进行异或运算
-        sum = 0
-        for i in array:
-            sum ^= i
-        index = 0
-        while (sum & 1) == 0:
-            sum >>= 1
-            index += 1
-        a = b = 0
-        for i in array:
-            if self.fun(i, index):
-                a ^= i
-            else:
-                b ^= i
-        return [a, b]
+import bisect
+import sys
 
-    def fun(self, num, index):
-        num = num >> index
-        return num & 1
+HAYSTACK = [1, 4, 5, 6, 8, 12, 15, 20, 21, 23, 23, 26, 29, 30]
+NEEDLES = [0, 1, 2, 5, 8, 10, 22, 23, 29, 30, 31]
+ROW_FMT = '{0:2d}@{1:2d}{2}{0:<2d}'
+
+
+def demo(bisect_fn):
+    for needle in reversed(NEEDLES):
+        position = bisect_fn(HAYSTACK, needle)
+        offset = position * ' |'
+        print(ROW_FMT.format(needle, position, offset))
+
+
+if __name__ == '__main__':
+    if sys.argv[-1] == 'left':
+        bisect_fn = bisect.bisect_left
+    else:
+        bisect_fn = bisect.bisect
+
+    print('DEMO:', bisect_fn.__name__)
+    print('haystack ->', ''.join('%2d' % n for n in HAYSTACK))
+    demo(bisect_fn)
