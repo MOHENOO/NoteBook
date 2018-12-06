@@ -1,8 +1,10 @@
+# 流畅的python
+
 ## 魔术方法
 
-1.  魔术方法(magic method)
+### 魔术方法(magic method)
 
-**len**,**getitem**(可迭代)
+- __len__,__getitem__(可迭代)
 
 ```python
 import collections
@@ -26,9 +28,7 @@ class FrenchDeck:
         return self._cards[position]
 ```
 
-**repr**(字符串表示形式),**abs**(绝对值，若为复数，返回模),**add**(+),**mul**(\*)
-
-[**repr**和**str**区别](https://stackoverflow.com/questions/1436703/difference-between-str-and-repr)
+- __repr__(字符串表示形式),__abs__(绝对值，若为复数，返回模),__add__(+),__mul__(*)
 
 ```python
 from math import hypot
@@ -58,17 +58,19 @@ class Vector:
         return Vector(self.x * scalar, self.y * scalar)
 ```
 
+[__repr__和__str__区别](https://stackoverflow.com/questions/1436703/difference-between-str-and-repr)
+
 ## 序列
 
-2.  列表推导
+### 列表推导和生成器表达式
 
--   列表推导
+- 列表推导
 
 ```python
 num=[i for i in range(10)]
 ```
 
--   笛卡尔积
+- 笛卡尔积
 
 ```python
 colors=['black','white']
@@ -77,7 +79,7 @@ tshirts=[(color,size)
         for color in colors for size in sizes]
 ```
 
-3.  生成器表达式(逐个产生对象，节省内存)
+- 生成器表达式(逐个产生对象，节省内存)
 
 ```python
 colors=['black','white']
@@ -85,18 +87,18 @@ sizes=['S','M','L']
 tshirt=((color,size) for color in colors for size in sizes)
 ```
 
-4.  元组(tuple)
+### 元组(tuple)
 
--   元组和记录
-    元组中每个元素都存放了记录中一个字段的数据，外加这个字段的位置
--   元组拆包
+- 元组和记录 元组中每个元素都存放了记录中一个字段的数据，外加这个字段的位置
+
+- 元组拆包
 
 ```python
 city, year, pop, chg, area = ('Tokyo', 2003, 32450, 0.66, 8014)
 #东京市的市名，年份，人口，人口变化，面积
 ```
 
-元素数目一致，用\*处理多余元素
+元素数目一致，用*处理多余元素
 
 ```python
 a,b,*rest=range(5)
@@ -107,26 +109,23 @@ a,*body,c,d=range(5)
 #(0,[1,2],3,4)
 ```
 
--   具名元组(collections.namedtuple)
+- 具名元组(collections.namedtuple)
 
 ```python
 Card = collections.namedtuple('Card', ['rank', 'suit'])
 ```
 
-\_fields()类属性，类方法
+_fields()类属性，类方法
 
-\_make(iterable)接收一个可迭代对象生成这个类的实例，类似通过\_变量。
+\_make(iterable)接收一个可迭代对象生成这个类的实例，类似通过_变量。
 
-\_asdict()通过collections.OrderDict形式返回
+_asdict()通过collections.OrderDict形式返回
 
--   作为不可变列表
+### 切片
 
-5.切片
+- 多维切片 Python 内置的序列类型都是一维的，numpy中可以使用多维切片。
 
--   多维切片
-    Python 内置的序列类型都是一维的，numpy中可以使用多维切片。
-
--   省略(三个英文句号)
+- 省略(三个英文句号)
 
 ```python
 a[i:...]
@@ -135,7 +134,7 @@ a[i:...]
 
 ...用作多维数组切片的快捷方式。
 
--   切片赋值
+- 切片赋值
 
 ```python
 l = list(range(10))
@@ -149,10 +148,9 @@ l[2:5] = [100]
 #正确，切片赋值右侧必须是可迭代对象
 ```
 
-6.  序列
+### 序列+和*
 
--   \*和+
-    不修改原有操作对象，而是构建一个新的序列
+- *和+ 不修改原有操作对象，而是构建一个新的序列
 
 ```python
 board = [['_'] * 3 for i in range(3)]
@@ -168,7 +166,7 @@ weird_board[1][2]='0'
 
 weird_board中外面的列表其实包含3个指向同一个列表的引用，所有3个列表都修改
 
--   序列的增量赋值(+=和\*=)
+- 序列的增量赋值(+=和*=)
 
 ```python
 l=[1,2,3]
@@ -185,11 +183,7 @@ id(t)
 #4464499880
 ```
 
-\+=对应特殊方法**iadd**,若一个类没有实现，则调用**add**。
-对可变序列一般都实现了**iadd**方法，+=是就地加法
-不可变序列不支持这个操作，调用**add**。
-对不可变类型重复拼接操作效率低，每次都需要先把原来对象中的元素先复制到新对象，然后追加新的元素
-str类型例外，CPython对其进行了优化，预留了可扩展空间
++=对应特殊方法__iadd__,若一个类没有实现，则调用__add__。 对可变序列一般都实现了__iadd__方法，+=是就地加法 不可变序列不支持这个操作，调用__add__。 对不可变类型重复拼接操作效率低，每次都需要先把原来对象中的元素先复制到新对象，然后追加新的元素 str类型例外，CPython对其进行了优化，预留了可扩展空间
 
 ```python
 t=(1,2,[30,40])
@@ -205,19 +199,15 @@ print(t)
 #(1, 2, [30, 40, 50, 60])
 ```
 
-7.  排序序列
+### 排序序列
 
--   排序
-    list.sort()和内置函数sorted()
-    list.sort()就地排序列表，返回值None
-    可迭代对象sorted()新建一个排序后列表做返回值
-    均包含参数reverse，key
--   bisect
-    bisect,insort利用二分查找来在有序序列中查找或插入元素
+- 排序 list.sort()和内置函数sorted() list.sort()就地排序列表，返回值None 可迭代对象sorted()新建一个排序后列表做返回值 均包含参数reverse，key
 
-8.  数组(array.array)
+- bisect bisect,insort利用二分查找来在有序序列中查找或插入元素
 
--   数组存入文件和读取
+### 数组(array.array)
+
+- 数组存入文件和读取
 
 ```python
 from array import array
@@ -239,7 +229,7 @@ print(floats2 == floats)
 # True
 ```
 
-9.  内存视图(memoryview)
+### 内存视图(memoryview)
 
 ```python
 from array import array
@@ -261,13 +251,11 @@ print(numbers)
 # array('h', [-2, -1, 1024, 1, 2])
 ```
 
-10. NumPy和SciPy
-    科学计算库
+### NumPy和SciPy 科学计算库
 
-11. 队列
+### 队列
 
--   双向队列和其他形式队列
-    collections.deque(双向队列，线程安全)
+- 双向队列和其他形式队列 collections.deque(双向队列，线程安全)
 
 ```python
 from collections import deque
@@ -292,17 +280,16 @@ print(dq)
 # deque([40, 30, 20, 10, 3, 4, 5, 6, 7, 8], maxlen=10)
 ```
 
-maxlen可容纳元素数量
-rotate队列的旋转操作
+maxlen可容纳元素数量 rotate队列的旋转操作
 
-标准库queue
-multiprocessing.queue
-asyncio.queue异步
-heapq 可将可变序列当作堆队列或者优先队列
+标准库queue multiprocessing.queue asyncio.queue异步 heapq 可将可变序列当作堆队列或者优先队列
 
 ## 字典和集合
-12. 泛映射类型
+
+### 泛映射类型
+
 collections.abc中的MutableMapping和Mapping抽象基类。作用是为dict和其他类似的类型定义形式接口
+
 ```python
 from collections import abc
 
@@ -310,9 +297,8 @@ my_dict = {}
 isinstance(my_dict, abc.Mapping)
 #True
 ```
-标准库中所有映射类型都是利用dict来实现。所有它们有共同的限制，即只有可散列的数据类型才能用作映射里的键
-如果一个对象是可散列的，那么在这个对象的生命周期中，它的散列值是不变的，而且这个对象需要实现\_\_hash\_\_()方法.另外可散列对象还有有\_\_qe\_\_()方法，这样才能和其他键比较。
-原子不可变数据类型(str,bytes和数值类型)都是可散列类型，forzenset也是可散列类型。元组的话，只有当一个元组包含的所有元素都是可散列类型，它才是可散列的
+
+标准库中所有映射类型都是利用dict来实现。所有它们有共同的限制，即只有可散列的数据类型才能用作映射里的键 如果一个对象是可散列的，那么在这个对象的生命周期中，它的散列值是不变的，而且这个对象需要实现__hash__()方法.另外可散列对象还有有__qe__()方法，这样才能和其他键比较。 原子不可变数据类型(str,bytes和数值类型)都是可散列类型，forzenset也是可散列类型。元组的话，只有当一个元组包含的所有元素都是可散列类型，它才是可散列的
 
 ```python
 tt = (1, 2, (30, 40))
@@ -329,7 +315,8 @@ hash(t1)
 # TypeError: unhashable type: 'list'
 ```
 
-13. 字典创建方法
+### 字典创建方法
+
 ```python
 a = dict(one=1, two=2, three=3)
 b = {'one': 1, 'two': 2, 'three': 3}
@@ -340,4 +327,4 @@ a == b == c == d == e
 #True
 ```
 
-14. 字典推导
+### 字典推导
