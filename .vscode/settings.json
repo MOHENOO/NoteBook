@@ -1,0 +1,7 @@
+{
+    "python.linting.pylintEnabled": false,
+    "python.linting.pep8Enabled": true,
+    "python.linting.enabled": true,
+    "python.pythonPath": "/Users/mohenoo/anaconda3/bin/python",
+    "vim.easymotionMarkerFontSize": "16"
+}
