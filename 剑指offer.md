@@ -892,3 +892,73 @@ class Solution:
                 break
         return result
 ```
+
+38. 输入一棵二叉树，求该树的深度。从根结点到叶结点依次经过的结点（含根、叶结点）形成树的一条路径，最长路径的长度为树的深度。
+
+```python
+class Solution:
+    def TreeDepth(self, pRoot):
+        # write code here
+        if pRoot is None:
+            return 0
+        left = self.TreeDepth(pRoot.left)
+        right = self.TreeDepth(pRoot.right)
+        return max(left, right) + 1
+```
+
+39. 输入一棵二叉树，判断该二叉树是否是平衡二叉树。
+
+```python
+# -*- coding:utf-8 -*-
+# class TreeNode:
+#     def __init__(self, x):
+#         self.val = x
+#         self.left = None
+#         self.right = None
+class Solution:
+    def IsBalanced_Solution(self, pRoot):
+        # write code here
+        if pRoot is None:
+            return True
+        if abs(self.TreeDepth(pRoot.left) - self.TreeDepth(pRoot.right)) > 1:
+            return False
+        return self.IsBalanced_Solution(pRoot.left) and self.IsBalanced_Solution(pRoot.right)
+
+    def TreeDepth(self, root):
+        if root is None:
+            return 0
+        left = self.TreeDepth(root.left)
+        right = self.TreeDepth(root.right)
+        return max(left + 1, right + 1)
+```
+
+40. 一个整型数组里除了两个数字之外，其他的数字都出现了偶数次。请写程序找出这两个只出现一次的数字。
+
+```python
+# -*- coding:utf-8 -*-
+class Solution:
+    # 返回[a,b] 其中ab是出现一次的两个数字
+    def FindNumsAppearOnce(self, array):
+        # write code here
+        if not array:
+            return []
+        # 对array中的数字进行异或运算
+        sum = 0
+        for i in array:
+            sum ^= i
+        index = 0
+        while (sum & 1) == 0:
+            sum >>= 1
+            index += 1
+        a = b = 0
+        for i in array:
+            if self.fun(i, index):
+                a ^= i
+            else:
+                b ^= i
+        return [a, b]
+
+    def fun(self, num, index):
+        num = num >> index
+        return num & 1
+```
