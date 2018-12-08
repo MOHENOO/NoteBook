@@ -328,3 +328,120 @@ a == b == c == d == e
 ```
 
 ### 字典推导
+
+```python
+DIAL_CODES = [(86, 'China'), (91, 'India'), (1, 'United States'), (62, 'Indonesia'), (55, 'Brazil'), (92, 'Pakistan'), (880, 'Bangladesh'), (234, 'Nigeria'), (7, 'Russia'), (81, 'Japan'), ]
+
+country_code={country:code for code,country in DIAL_CODES} 
+country_code 
+#{'China': 86, 'India': 91, 'United States': 1, 'Indonesia': 62, 'Brazil': 55, 'Pakistan': 92, 'Bangladesh': 880, 'Nigeria': 234, 'Russia': 7, 'Japan': 81}
+{code:country.upper() for country,code in country_code.items() if code<66}
+# {1: 'UNITED STATES', 62: 'INDONESIA', 55: 'BRAZIL', 7: 'RUSSIA'}
+```
+
+### 常见的映射方法
+
+- setdefault
+
+使用get()
+
+```python
+import sys import re
+
+WORD_RE = re.compile(r'\w+')
+
+index = {}
+with open(sys.argv[1], encoding='utf-8') as fp:
+    for line_no, line in enumerate(fp, 1):
+        for match in WORD_RE.findite(line):
+            word = match.group()
+            column_no = match.start()+1
+            location = (line_no, column_no)
+            occurrences = index.get(word, [])
+            occurrences.append(location)
+            index[word] = occurrences
+
+for word in sorted(index, key=str.upper):
+     print(word, index[word]
+
+# 输出每一行列表都表示一个单词的出现情况，第一个值是出现的行，第二个值是出现的列
+```
+
+使用setdefault()替代get()
+
+```python
+import sys 
+import re
+
+WORD_RE = re.compile(r'\w+')
+
+index = {} with open(sys.argv[1], encoding='utf-8') as fp:
+for line_no, line in enumerate(fp, 1):
+    for match in WORD_RE.finditer(line):
+        word = match.group()
+        column_no = match.start()+1
+        location = (line_no, column_no)
+        index.setdefault(word, []).append(location)
+
+for word in sorted(index, key=str.upper):
+    print(word, index[word])
+```
+
+也就是说:
+
+```python
+my_dict.setdefault(key,[]).append(new_value)
+```
+
+相当于：
+
+```python
+if key not in my_dict:
+    my_dict[key]=[]
+my_dict[key].append(new_value)
+```
+
+### 映射的弹性键查询
+
+- defaultdict
+
+```python
+import sys
+import re
+import collections
+
+WORD_RE = re.compile(r'\w+')
+
+index = collections.defaultdict(list)
+with open(sys.argv[1], encoding='utf-8') as fp:
+    for line_no, line in enumerate(fp, 1):
+        for match in WORD_RE.finditer(line):
+            word = match.group()
+            column_no = match.start()+1
+            location = (line_no, column_no)
+            index[word].append(location)
+
+for word in sorted(index, key=str.upper):
+    print(word, index[word])
+```
+
+- /_/_missing__
+
+```python
+class StrKeyDict0(dict):
+    def __missing__(self, key):
+        if isinstance(key, str):
+            raise KeyError(key)
+        return self[str(key)]
+
+def get(self, key, default=None):
+    try:
+        return self[key]
+    except KeyError:
+        return default
+
+def __contains__(self, key):
+    return key in self.keys() or str(key) in self.keys()
+```
+
+所有的映射类型在处理找不到的键的时候，就会调用__missing__()方法，基类dict并没有定义这个刚噶，如果一个类继承了dict，然后实现__missing__()方法，就可以实现设置默认值。
