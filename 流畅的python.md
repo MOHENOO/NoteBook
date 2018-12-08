@@ -4,7 +4,7 @@
 
 ### 魔术方法(magic method)
 
-- __len__,__getitem__(可迭代)
+- **len**,**getitem**(可迭代)
 
 ```python
 import collections
@@ -28,7 +28,7 @@ class FrenchDeck:
         return self._cards[position]
 ```
 
-- __repr__(字符串表示形式),__abs__(绝对值，若为复数，返回模),__add__(+),__mul__(*)
+- **repr**(字符串表示形式),**abs**(绝对值，若为复数，返回模),**add**(+),**mul**(*)
 
 ```python
 from math import hypot
@@ -58,7 +58,7 @@ class Vector:
         return Vector(self.x * scalar, self.y * scalar)
 ```
 
-[__repr__和__str__区别](https://stackoverflow.com/questions/1436703/difference-between-str-and-repr)
+[**repr**和**str**区别](https://stackoverflow.com/questions/1436703/difference-between-str-and-repr)
 
 ## 序列
 
@@ -183,7 +183,7 @@ id(t)
 #4464499880
 ```
 
-+=对应特殊方法__iadd__,若一个类没有实现，则调用__add__。 对可变序列一般都实现了__iadd__方法，+=是就地加法 不可变序列不支持这个操作，调用__add__。 对不可变类型重复拼接操作效率低，每次都需要先把原来对象中的元素先复制到新对象，然后追加新的元素 str类型例外，CPython对其进行了优化，预留了可扩展空间
++=对应特殊方法**iadd**,若一个类没有实现，则调用**add**。 对可变序列一般都实现了**iadd**方法，+=是就地加法 不可变序列不支持这个操作，调用**add**。 对不可变类型重复拼接操作效率低，每次都需要先把原来对象中的元素先复制到新对象，然后追加新的元素 str类型例外，CPython对其进行了优化，预留了可扩展空间
 
 ```python
 t=(1,2,[30,40])
@@ -298,7 +298,7 @@ isinstance(my_dict, abc.Mapping)
 #True
 ```
 
-标准库中所有映射类型都是利用dict来实现。所有它们有共同的限制，即只有可散列的数据类型才能用作映射里的键 如果一个对象是可散列的，那么在这个对象的生命周期中，它的散列值是不变的，而且这个对象需要实现__hash__()方法.另外可散列对象还有有__qe__()方法，这样才能和其他键比较。 原子不可变数据类型(str,bytes和数值类型)都是可散列类型，forzenset也是可散列类型。元组的话，只有当一个元组包含的所有元素都是可散列类型，它才是可散列的
+标准库中所有映射类型都是利用dict来实现。所有它们有共同的限制，即只有可散列的数据类型才能用作映射里的键 如果一个对象是可散列的，那么在这个对象的生命周期中，它的散列值是不变的，而且这个对象需要实现**hash**()方法.另外可散列对象还有有**qe**()方法，这样才能和其他键比较。 原子不可变数据类型(str,bytes和数值类型)都是可散列类型，forzenset也是可散列类型。元组的话，只有当一个元组包含的所有元素都是可散列类型，它才是可散列的
 
 ```python
 tt = (1, 2, (30, 40))
@@ -444,4 +444,137 @@ def __contains__(self, key):
     return key in self.keys() or str(key) in self.keys()
 ```
 
-所有的映射类型在处理找不到的键的时候，就会调用__missing__()方法，基类dict并没有定义这个刚噶，如果一个类继承了dict，然后实现__missing__()方法，就可以实现设置默认值。
+所有的映射类型在处理找不到的键的时候，就会调用**missing**()方法，基类dict并没有定义这个刚噶，如果一个类继承了dict，然后实现**missing**()方法，就可以实现设置默认值。
+
+### 字典的变种
+
+- collections.OrderedDict
+
+该类型添加键的时候保持顺序。 popitem()方法默认删除并返回字典最后一个元素 popitem(last=False)调用时删除并返回第一个元素
+
+- collections.ChainMap
+
+该类型可以容纳数个不同的映射对象，然后在进行键查找操作的时候，这些对象会被当做一个整体被逐个查找，直到键被找到。
+
+- collections.Counter
+
+这个映射类型会给键准备一个整数计数器。每次更新一个键的时候都会增加这个计数器。
+
+```python
+import collections
+ct=collections.Counter('abracadabra')
+ct
+#Counter({'a': 5, 'b': 2, 'r': 2, 'c': 1, 'd': 1})
+ct.update('aaaaazzz')
+ct
+Counter({'a': 10, 'z': 3, 'b': 2, 'r': 2, 'c': 1, 'd': 1})
+ct.most_common(2)
+#[('a', 10), ('z', 3)]
+```
+
+- collections.UserDict
+
+让用户继承的字典类，但UserDict并不是dict的子类.
+
+```python
+import collections
+class StrKeyDict(collections.UserDict):
+    def __missing__(self, key):
+        if isinstance(key, str):
+            raise KeyError(key)
+        return self[str(key)]
+
+    def __contains__(self, key):
+        return str(key) in self.data
+
+    def __setitem__(self, key, item):
+        self.data[str(key)]=item
+```
+
+键为字符串的字典
+
+### 不可变映射类型
+
+- types.MappingProxyType
+
+如果给这个类一个映射，它会返回一个只读的映射视图。
+
+```python
+from types import MappingProxyType
+d = {1: 'A'}
+d_proxy=MappingProxyType(d)
+#mappingproxy({1: 'A'})
+d_proxy d_proxy[1]
+#'A'
+d_proxy[2] = x
+#Traceback (most recent call last):
+# File "<stdin>", line 1, in <module>
+# NameError: name 'x' is not defined</module></stdin>
+
+d[2]='B'
+# mappingproxy({1: 'A', 2: 'B'})
+d_proxy d_proxy[2]
+# 'B'
+```
+
+### 集合论
+
+集合的本质是许多唯一对象的聚集。因此集合可以用来去重。
+
+集合中的元素必须是可散列的，set类型本身是不可散列的，但frozenset可以。因此可以创建一个包含不同frozenset的set。
+
+a|b返回的是它们的合集。a&b得到交集。a-b差集。
+
+- 集合字面量
+
+如果是空集，那么必须写成set()的形式。除空集外，集合的字面量{1},{1,2}
+
+```python
+s={1}
+type(s)
+# <class 'set'>
+s
+#{1}
+s.pop()
+#1
+s
+#set()
+```
+
+由于Python里没有针对frozenset的特殊字面量句法，我们只能采用构造方法。
+
+- 集合推导
+
+```python
+from unicodedata import name
+{chr(i) for i in range(32, 256) if 'SIGN' in name(chr(i), '')}
+#{'§', '>', '¥', '=', '#', '+', 'µ', '£', '©', '%', '®', '¢', '¤', '×', '÷', '¬', '$', '±','°', '<', '¶'}
+```
+
+### dict和set的背后
+
+- 字典中的散列表
+
+散列表其实是一个稀疏数组(总有空白元素的数组)。散列表的单元叫做表元。在dict的散列表中，每个键值对占用一个表元，每个表元都有两个部分,一个是对键的引用，另一个是对值的引用。
+
+为了让散列表能够胜任散列表索引这一角色，它们必须在索引空间中尽量分散开。这意味这在最理想的状况下，越是相似但不相等的对象，它们的散列值的差别应该越大。
+
+```python
+hash(1)
+# 1
+hash(1.0)
+# 1
+hash(1.0001)
+# 230584300921345
+```
+
+- dict或set的实现及其导致的结果
+1. 键必须是可散列的
+2. 支持通过__eq__()方法来检测相等性
+3. 若a==b为真,则hash(a)==hash(b)也为真
+4. 字典或集合在内存上的开销巨大
+5. 键查询很快
+6. 键的次序取决于添加顺序
+7. 往字典或集合里添加新键可能会改变已有键的顺序
+
+所有用户自定义对象默认都是可散列的，因为它买二散列值由id()来获取
