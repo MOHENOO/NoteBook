@@ -578,3 +578,48 @@ hash(1.0001)
 7. 往字典或集合里添加新键可能会改变已有键的顺序
 
 所有用户自定义对象默认都是可散列的，因为它买二散列值由id()来获取
+
+## 文本和字节序列
+
+### 字符编码和解码
+
+python3的str类型基本相当于python2的unicode类型，不过python3的bytes类型却不是吧str类型换个名称那么简单，而且还有关系紧密的bytearray类型。
+
+```python
+s='cafe'
+len(s)
+#4
+b=s.encode('utf16')
+b
+#b'\xff\xfec\x00a\x00f\x00e\x00'
+len(b)
+#10
+b.decode('utf16')
+#cafe
+```
+
+### 字节概要
+
+python3引入不可变bytes类型，python2.6添加可变bytearray类型。(python2.6也引入了bytes类型，但不过是str类型的别名,与python3的bytes类型不同)
+
+```python
+cafe=bytes('cafe',encoding='utf-8')
+cafe
+cafe[0]
+#bytes对象的各个元素都是range(256)内的整数
+cafe[:1]
+#bytes对象的切片还是bytes对象，即使是只有一个字节的切片 b'c'
+cafe_arr=bytearray(cafe)
+cafe_arr
+#bytearray对象没有字面量句法,而是以bytearray()和字节序列字节量参数的形式显示
+cafe_arr[-1:]
+#bytearray对象的切片还是bytearray对象
+```
+
+虽然二进制序列其实是整数序列，但是它们的字面量表示发表明其中有ASCII文本。
+
+- 可打印的ASCII范围内的字节(从空格到~),使用ASCII字符本身。
+
+- 制表符,换行符,回车符和\对应的字节，使用转义序列\t,\n,\r和\\\\。
+
+- 其他字节的值，使用十六进制转义序列。
