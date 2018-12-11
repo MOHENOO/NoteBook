@@ -583,7 +583,13 @@ hash(1.0001)
 
 ### 字符编码和解码
 
-python3的str类型基本相当于python2的unicode类型，不过python3的bytes类型却不是吧str类型换个名称那么简单，而且还有关系紧密的bytearray类型。
+把码位转换成字节序列的过程是编码；把字节序列转换成码位的过程是解码。
+
+把字节序列变成人类可读的文本字符串就是解码(decode)，把字符串变成用于存储或传输的字节序列就是编码(encode)。
+
+**python2**的str对象获取的是原始字符序列
+
+**python3**的str类型基本相当于python2的unicode类型，不过python3的bytes类型却不是把str类型换个名称那么简单，而且还有关系紧密的bytearray类型。
 
 ```python
 s='cafe'
@@ -600,26 +606,70 @@ b.decode('utf16')
 
 ### 字节概要
 
-python3引入不可变bytes类型，python2.6添加可变bytearray类型。(python2.6也引入了bytes类型，但不过是str类型的别名,与python3的bytes类型不同)
+- 概要
+
+python内置了两种基本的二进制序列类型：python3引入不可变bytes类型，python2.6添加可变bytearray类型。(python2.6也引入了bytes类型，但不过是str类型的别名,与python3的bytes类型不同)
+
+bytes或bytearray对象各个元素介于0~255(含)之间的整数，而不是像python2的str对象那样是单个的字符。二进制序列的切片始终是同一类型的二进制序列，包括长度为1的切片。
 
 ```python
 cafe=bytes('cafe',encoding='utf-8')
 cafe
+#b'cafe'
 cafe[0]
-#bytes对象的各个元素都是range(256)内的整数
+#bytes对象的各个元素都是range(256)内的整数 99
 cafe[:1]
 #bytes对象的切片还是bytes对象，即使是只有一个字节的切片 b'c'
 cafe_arr=bytearray(cafe)
 cafe_arr
-#bytearray对象没有字面量句法,而是以bytearray()和字节序列字节量参数的形式显示
+#bytearray对象没有字面量句法,而是以bytearray()和字节序列字节量参数的形式显示 bytearray(b'cafe')
 cafe_arr[-1:]
-#bytearray对象的切片还是bytearray对象
+#bytearray对象的切片还是bytearray对象 bytearray(b'e')
 ```
+
+s[0]==s[:1]只对str这个序列类型成立。对其他序列类型来说，s[i]返回一个元素，而s[i:i+1]返回一个相同类型的序列。
 
 虽然二进制序列其实是整数序列，但是它们的字面量表示发表明其中有ASCII文本。
 
-- 可打印的ASCII范围内的字节(从空格到~),使用ASCII字符本身。
+可打印的ASCII范围内的字节(从空格到~),使用ASCII字符本身。
 
-- 制表符,换行符,回车符和\对应的字节，使用转义序列\t,\n,\r和\\\\。
+制表符,换行符,回车符和\对应的字节，使用转义序列\t,\n,\r和\\\\。
 
-- 其他字节的值，使用十六进制转义序列。
+其他字节的值，使用十六进制转义序列。
+
+- 结构体和内存试图
+
+struct模块提供了一些函数，把打包的字节序列转换成不同类型字段组成的元组，还有一些函数用于执行反向转换，把元组转换成打包的字节序列。struct模块能处理bytes，bytearray和memoryview对象。
+
+memoryview类不是用于创建或存储字节序列的，而是共享内存，让你访问其他二进制序列，打包的数组和缓冲中的数据切片，而无需复制字节序列。
+
+```python
+import struct
+fmt = '<3s3sHH'
+#结构体的格式:<是小字节序，3s3s是两个3字节序列，HH是两个16位二进制整数。
+with open('filter.gif', 'rb') as fp:
+    img = memoryview(fp.read())
+    header = img[:10]
+    #用memoryview对象的切片新建一个memoryview对象，这里不会复制字节序列。
+    bytes(header)
+    # b'GIF89a+\x02\xe6\x00
+    struct.unpack((fmt, header))
+    # (b'GIF',b'89a',555,230) 拆包memoryview对象，得到一个元组，包含类型，版本，宽度和高度。
+    del header
+    #删除引用，释放memoryview实例所占的内存。
+    del img
+```
+
+### 基本的编解码器
+
+python自带了超过100种编解码器，用于在文本和字节之间相互转换。每个编解码器都有一个名称，如'utf_8',而且经常有几个别名，如'utf-8'和'U8'。这些名称可以传给open(),str.encode(),bytes.decode()等函数的encoding参数。
+
+```python
+for codec in ['latin_1', 'utf_8', 'utf_16']:
+    print(codec,'El Nino'.encode(codec),sep='\t')
+# latin_1 b'El Nino'
+# utf_8   b'El Nino'
+# utf_16  b'\xff\xfeE\x00l\x00 \x00N\x00i\x00n\x00o\x00'
+```
+
+### 了解编解码问题
