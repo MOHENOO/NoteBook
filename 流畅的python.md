@@ -673,3 +673,124 @@ for codec in ['latin_1', 'utf_8', 'utf_16']:
 ```
 
 ### 了解编解码问题
+
+虽然有个一般性的UnicodeError异常，但是报告错误时几乎都会指明具体的异常:UnicodeEncodeError(把字符串转换成二进制序列时)或UnicodeDecodeError(把二进制序列转换成字符串时)。如果源码的编码与预期不符，加载Python模块时还可能抛出SyntaxError。
+
+- 处理UnicodeEncodeError
+
+多数非UTF编解码器只能处理Unicode字符的一小部分子集。把文本转换成字节序列时，如果目标编码没有定义某个字符，那就会抛出UnicodeEncodeError异常，除非把errors参数传给编码方法或函数，对错误进行特殊处理。
+
+```python
+city = 'Sao Paulo'
+city.encode('utf_8')
+city.encode('utf_16')
+city.encode('iso8859_1')
+city.encode('cp437')
+city.encode('cp437', errors='ignore')
+#跳过无法编码的字符
+city.encode('cp437',errors='replace')
+#把无法编码的字符替换成'?'
+city.encode('cp437',errors='xmlcharrefreplace')
+#把无法编码的字符替换成xml实体
+```
+
+- 处理UnicodeDecodeError
+
+不是每一个字节都包含有效的ASCII字符，也不是每一个字符序列都是有效的UTF-8或UTF-16。因此把二进制序列转换成文本时，如果假设时这两个编码中的一个，遇到无法转换的字节序列时会抛出UnicodeDecodeError。
+
+```python
+octets = b'Montr\xe9a1'
+octets.decode('cp1252')
+#'Montréa1'
+octets.decode('iso8859_7')
+#'Montrιa1'
+octets.decode('koi8_r')
+#'MontrИa1'
+octets.decode('utf_8')
+# Traceback (most recent call last):
+#   File "<stdin>", line 1, in <module>
+# UnicodeDecodeError: 'utf-8' codec can't decode byte 0xe9 in position 5: invalid continuation byte
+octets.decode('utf_8',errors='replace')
+#'Montr�a1'
+```
+
+- 使用预期之外的编码加载模块时抛出的SyntaxError
+
+Python3 默认使用UTF-8编码源码，Python2(从2.5开始)则默认使用ASCII。如果加载的.py模块中包含UTF-8之外的数据,而且没有声明编码，会抛出SyntaxError。
+
+为了修正这个问题，可以在文件顶部添加coding注释。
+
+- 如何找出字节序列的编码
+
+简单来说不能找出字节序列的编码。有些通信协议和文件格式，如HTTP和XML，包含明确指明内容编码的首部。但如果字节序列中某些序列经常出现，那么可以通过统一字符编码侦测包Chardet来识别。
+
+- BOM:有用的乱码
+
+BOM:字节序标记，指明编码时使用Intel CPU的小字节序。
+某些Window应用(Notepad)会在UTF-8编码的文件中添加BOM，如果有BOM就确定文件是utf-8编码。
+
+### 处理文本文件
+
+处理文本的最佳实践是"Unicode三明治"。意思是在程序中尽早把输入(例如读取文件时)的字节序列解码成字符串，在这里只能处理字符串对象。在其他处理过程中，一定不能编码或解码。对输出来说，则要尽可能晚地把字符串编码成字节序列。多数Web框架都是这样做的，使用框架时很少接触字节序列。
+
+Unicode三明治:
+bytes->str 解码输入的字节序列
+100%str 只处理文本
+str->bytes 编码输出的文本。
+
+在Python3中能轻松地采纳Unicode三明治的建议，因为内置的open函数会在读取文件时做必要的解码，以文本模式写入文件时还会做必要的编码。
+
+GNU/Linux或MacOS中默认编码是UTF-8,windows系统会使用区域设置中的默认编码，所以使用open函数时最好指明encoding参数。
+
+- 编码默认值：一团糟
+
+有几个设置对PythonI/O的编码默认值有影响。
+
+```python
+import sys
+import locale
+
+expressions = """
+            locale.getpreferredencoding()
+            type(my_file)
+            my_file.encoding
+            sys.stdout.isatty()
+            sys.stdout.encoding
+            sys.stdin.isatty()
+            sys.stderr.isatty()
+            sys.stderr.encoding
+            sys.getfilesystemencoding()
+"""
+
+my_file = open('dummy', 'w')
+
+for expression in expressions.split():
+    value = eval(expression)
+    print(expression.rjust(30), '->', repr(value))
+```
+
+### 为了正确比较而规范化Unicode字符串
+
+Unicode中存在对同一字符存在两种二进制序列,叫做"标准等价物",应用程序应该把它们视作相同的字符，但Python看到的是不同的码位序列，因此判定二者不相等。
+这个问题的解决方案是使用unicodedata.normalize函数提供的Unicode规范化。
+安全起见，保存文本之前，最后使用normalize清洗字符串。当然还有其他规范。
+
+- 大小写折叠
+
+大小写折叠就是把所有文本变成小写，再做些其他转换。这个功能由str.casefold()方法支持。
+对于只包含latin1字符的字符串casefold()的到的结果与s.lower()大部分一样，只有两个例外。自python3.5起str.casefold()和str.lower()得到不同结果的有116个码位。
+
+- 规范化文本匹配实用函数
+
+除之前提到的函数外，如果处理多语言文本，可以使用nfc_equal和fold_equal.
+
+### Unicode文本排序
+
+在python中,非ASCII文本的标准排序方式使用locale.strxfrm函数，这个函数会"把字符串转换成所在区域进行比较的形式"。
+使用locale.strxfrm，必须先为应用设定合适的区域设置，还需要操作系统支持这项设置。可通过sorted函数的key参数指定locale.strxfrm。
+
+有个较为简单的方案实现排序，PyPI中的PyUCA库。
+
+## Unicode数据库
+
+unicode标准提供一个完整的数据库，不仅包括码位与字符名称之间的映射，还有各个字符元数据，以及字符之间的关系。(unicodedata库包含了一些使用Unicode数据库的函数)，除Unicode数据库外，还有一种新的趋势--双模式API,即提供的函数能接受字符串或字节序列为参数，然后根据类型进行特殊处理。(例如re类等)
