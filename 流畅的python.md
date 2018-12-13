@@ -791,6 +791,132 @@ Unicode中存在对同一字符存在两种二进制序列,叫做"标准等价�
 
 有个较为简单的方案实现排序，PyPI中的PyUCA库。
 
-## Unicode数据库
+### Unicode数据库
 
 unicode标准提供一个完整的数据库，不仅包括码位与字符名称之间的映射，还有各个字符元数据，以及字符之间的关系。(unicodedata库包含了一些使用Unicode数据库的函数)，除Unicode数据库外，还有一种新的趋势--双模式API,即提供的函数能接受字符串或字节序列为参数，然后根据类型进行特殊处理。(例如re类等)
+
+## 函数
+
+在python中函数是一等对象。(一等对象:1.在运行时创建 2.能赋值给变量或数据结构中的元素 3.能作为参数传给函数 4.能作为函数返回结果),python中的整数,字符串和字典都是一等对象。
+
+### 把函数视作对象
+
+```python
+def fatorial(n):
+    '''returns n!'''
+    return 1 if n < 2 else n*fatorial(n-1)
+
+
+fatorial(42)
+#1405006117752879898543142606244511569936384000000000
+fatorial.__doc__
+#'returns n!' __doc__属性用于生成对象的帮助文本。
+type(fatorial)
+#<class 'function'>
+
+fact = fatorial
+fact
+#<function fatorial at 0x1053681e0>
+fact(5)
+#120
+map(fatorial,range(11))
+# <map object at 0x1055014a8>
+list(map(fact,range(11)))
+# [1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800]
+```
+
+### 高阶函数
+
+接受函数为参数，或者把函数作为结果返回的函数是高阶函数。例如map函数，内置的sorted函数。
+
+```python
+fruits = ['strawberry', 'fig', 'apple', 'cherry', 'raspberry', 'banana']
+sorted(fruits, key=len)
+['fig', 'apple', 'cherry', 'banana', 'raspberry', 'strawberry']
+```
+
+map,filter和reduce是三个常见的高阶函数
+
+- map,filter和reduce的现代替代品
+
+在python3中,map和filter还是内置函数，但是由于引入了列表推导和生成器表达式，它们变得没那么重要了。列表推导或生成器表达式具有map和filter两个函数的功能，而且更易于阅读。
+
+```python
+def fact(n):
+    '''returns n!'''
+    return 1 if n < 2 else n * fact(n - 1)
+
+
+list(map(fact, range(6)))
+# [1, 1, 2, 6, 24, 120]
+[fact(n) for n in range(6)]
+# [1, 1, 2, 6, 24, 120]
+list(map(fact, filter(lambda n: n % 2, range(6))))
+# [1, 6, 120]
+[fact(n) for n in range(6) if n % 2]
+# [1, 6, 120]
+```
+
+在python3中,map和filter返回生成器，因此它们的直接替代品是生成器表达式(在python2中,这两个函数返回列表,因此最接近的替代品是列表推导)
+
+在python2中,reduce是内置函数,但是在python3中放到functools模块里,这个函数最常用于求和。最好用内置的sum函数。在可读性和性能方面都更好。
+
+```python
+from functools import reduce
+
+from operator import add
+
+reduce(add,range(100))
+# 4950
+sum(range(100))
+# 4950
+```
+
+sum和reduce的通用思想是把某个操作连续应用到序列的元素上，累计之前的结果，把一系列值归约成一个值。
+all和any也是内置的归约函数
+
+### 匿名函数
+
+lambda关键字在python表达式内创建匿名函数。然而python简单的句法限制了lambda函数的定义体只能使用纯表达式。换句话说,lambda函数的定义体不能赋值，也不能使用while和try等python语句。
+
+```python
+fruits = ['strawberry', 'fig', 'apple', 'cherry', 'raspberry', 'banana']
+sorted(fruits,key=lambda word:word[::-1])
+# ['banana', 'apple', 'fig', 'raspberry', 'strawberry', 'cherry']
+```
+
+除了作为参数传给高阶函数之外,python很少使用匿名函数。lambda句法只是语法糖。
+
+### 可调用对象
+
+除了用户定义的函数，调用运算芳(即())还可以应用到其他对象上。python数据模型文档列出了7种可调用对象。
+
+- 用户定义的函数
+
+使用def语句或lambda创建。
+
+- 内置函数
+
+使用C语言(CPythonm)实现的函数,如len或time.strftime
+
+- 内置方法
+
+使用C语言实现的方法，如dict.get。
+
+- 方法
+
+在类的定义体中定义的函数。
+
+- 类
+
+调用类是会运行类的__new__方法创建一个实例,然后运行__init__方法，初始化实例，最好把实例返回给调用方。应为python没有new运算符,所有调用类相当于调用函数。
+
+- 类的实例
+
+如果类定义类__call__方法，那么他的实例可以作为函数调用
+
+- 生成器函数
+
+使用yield关键字的函数或方法。调用生成器函数返回的是生成器对象，生成器函数在很多方面与其他可调用对象不同。生成器函数还可以作为协程。
+
+python中判断对象能否调用，最安全的方法是使用内置的callable()函数
