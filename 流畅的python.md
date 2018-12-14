@@ -920,3 +920,92 @@ sorted(fruits,key=lambda word:word[::-1])
 使用yield关键字的函数或方法。调用生成器函数返回的是生成器对象，生成器函数在很多方面与其他可调用对象不同。生成器函数还可以作为协程。
 
 python中判断对象能否调用，最安全的方法是使用内置的callable()函数
+
+### 用户定义的可调用类型
+
+不仅python函数是真正的对象,任何python对象都可以表现得像函数。为此只需要实现实例方法__call__(实现()运算符)。
+
+```python
+import random
+
+
+class BingoCage:
+
+    def __init__(self, items):
+        self._items = list(items)
+        random.shuffle(self._items)
+
+    def pick(self):
+        try:
+            return self._items.pop()
+        except IndexError:
+            raise LookupError('pick from empty BingoCage')
+
+    def __call__(self):
+        return self.pick()
+
+bingo=BingoCage(range(3))
+bingo.pick()
+#1
+bingo()
+#2
+callable(bingo)
+#True
+```
+
+实现__call__方法的类是创建函数类对象的简便方式，此时必须在内部维护一个状态，让它在调用之间可用，例如BingoCage中的剩余元素。装饰器就是这样。装饰器必须是函数，而且有时要在多次调用之间"记住"某些事(例如备忘,即缓存消耗大的计算结果，供后面使用)。创建保有内部状态的的函数，还有一种截然不同的方式——使用闭包。把函数视作对象处理可以使运行时内省。
+
+### 函数内省
+
+除了__doc__，函数对象还有很多属性。其中大多数属性是python对象共有的。
+
+```python
+def fact(n):
+    return n
+
+dir(fact)
+# ['__annotations__', '__call__', '__class__', '__closure__', '__code__', '__defaults__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__get__', '__getattribute__', '__globals__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__kwdefaults__', '__le__', '__lt__', '__module__', '__name__', '__ne__', '__new__', '__qualname__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__','__subclasshook__']
+```
+
+常规对象没有而函数有的属性
+
+```python
+class C:
+    def __init__(self):
+        pass
+
+obj=C()
+
+def func():
+    return None
+
+sorted(set(dir(func))-set(dir(obj)))
+# ['__annotations__', '__call__', '__closure__', '__code__', '__defaults__', '__get__', '__globals__', '__kwdefaults__', '__name__', '__qualname__']
+```
+
+### 从定位参数到仅限关键字参数
+
+Python最好的特性之一是提供了极为灵活的参数处理机制，而且Python3进一步提供了仅限关键字参数。与之密切相关的是使用\*和\*\*展开的可迭代对象，映射到单个参数。
+
+```python
+def tag(name,  *content, cls=None, **attrs):
+    """生成一个或多个HTML标签"""
+    if cls:
+        attrs['class'] = cls
+    if attrs:
+        attr_str = ''.join(' %s="%s"' % (attr, value)
+                           for attr, value in sorted(attrs.items()))
+    else:
+        attr_str = ''
+    if content:
+        return '\n'.join('<%s%s>%s</%s>' % (name, attr_str, c, name) for c in content)
+    else:
+        return '<%s%s />' % (name, attr_str)
+
+
+tag('br')
+tag('p', 'hello')
+tag('p', 'hello', id=33)
+```
+
+仅限关键字参数是python3新增的特性，示例中的cls参数只能通过关键字参数指定。定义函数时若想指定仅限关键字参数，只要把它们放到前面有*的参数后面。
