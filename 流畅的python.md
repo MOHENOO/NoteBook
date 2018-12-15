@@ -889,7 +889,7 @@ sorted(fruits,key=lambda word:word[::-1])
 
 ### 可调用对象
 
-除了用户定义的函数，调用运算芳(即())还可以应用到其他对象上。python数据模型文档列出了7种可调用对象。
+除了用户定义的函数，调用运算符(即())还可以应用到其他对象上。python数据模型文档列出了7种可调用对象。
 
 - 用户定义的函数
 
@@ -1004,8 +1004,126 @@ def tag(name,  *content, cls=None, **attrs):
 
 
 tag('br')
+# '<br />'
 tag('p', 'hello')
+# '<p>hello</p>'
 tag('p', 'hello', id=33)
+# '<p id="33">hello</p>'
+tag('p', 'hello', 'world', cls='sidebar')
+# '<p class="sidebar">hello</p>\n<p class="sidebar">world</p>'
 ```
 
 仅限关键字参数是python3新增的特性，示例中的cls参数只能通过关键字参数指定。定义函数时若想指定仅限关键字参数，只要把它们放到前面有*的参数后面。
+
+### 获取关于参数的信息
+
+```python
+import bobo
+
+
+@bobo.query('/')
+def hello(person):
+    return 'Hello %s!' % person
+#bobo.query装饰器把一个普通的函数与框架的请求处理机制集成起来。这里的关键是Bobo会内省heloo函数发现它需要一个名为person的参数，然后中请求中获取那个名称对应的参数。
+```
+
+函数对象有个__defaults__属性，它的值是一个元组，里面保存着定位参数和关键字参数的默认值。仅限关键字参数的默认值在__kwdefaults__属性中，然而参数的名称在__code__属性中，它的值是一个code对象引用，自身也有很多属性。
+
+```python
+def clip(text, max_len=80):
+    """在max_len前面或后面的第一个空格处截断文本"""
+    end = None
+    if len(text) > max_len:
+        space_before = text.rfind(' ', 0, max_len)
+        if space_before >= 0:
+            end = space_before
+        else:
+            space_after = text.rfind(' ', max_len)
+            if space_after >= 0:
+                end = space_after
+    if not end:
+        end = len(text)
+    return text[:end].rstrip()
+
+
+clip.__defaults__
+#(80,)
+clip.__code__
+#<code object clip at 0x106054c00, file "<stdin>", line 1>
+clip.__code__.co_varnames
+# ('text', 'max_len', 'end', 'space_before', 'space_after')
+clip.__code__.co_argcount
+# 2
+sig=signature(clip)
+sig
+#<Signature (text, max_len=80)>
+str(sig)
+#'(text, max_len=80)'
+for name, param in sig.parameters.items():
+    print(param.kind,'',name,'=',param.default)
+# POSITIONAL_OR_KEYWORD  text = <class 'inspect._empty'>
+# POSITIONAL_OR_KEYWORD  max_len = 80
+```
+
+参数名称在__code__.co_varnames中，不过里面还有函数定义体中创建的局部变量。因此，参数名称是前N个字符串，N的值由__code__.co_argcount确定。这里不包括含前缀为\*或\*\*的变长参数。参数的默认值只能通过它们在__defaults__元组中的位置确定，因此要从后向前扫描才能把参数和默认值对应起来。在这个实例中clip函数有两个参数,其中有一个默认值80，它必然属于最好一个参数max_len。这有违常理。我们有更好的方式，使用inspect模块。
+
+### 函数注解
+
+python3提供了一种句法，用于为函数声明中的参数和返回值附加元数据。
+
+```python
+def clip(text: str, max_len: 'int >0' = 80)->str:
+    """在max_len前面或后面的第一个空格处截断文本"""
+    end = None
+    if len(text) > max_len:
+        space_before = text.rfind(' ', 0, max_len)
+        if space_before >= 0:
+            end = space_before
+        else:
+            space_after = text.rfind(' ', max_len)
+            if space_after >= 0:
+                end = space_after
+    if not end:
+        end = len(text)
+    return text[:end].rstrip()
+
+clip.__annotations__
+# {'text': <class 'str'>, 'max_len': 'int >0', 'return': <class 'str'>}
+```
+
+python对注解所做的唯一的事情是，把它们存储在函数的__annotations__属性里。
+
+### 支持函数式编程的包
+
+- operator模块
+
+在函数式编程中，经常需要把算术运算符当作函数使用，lambda表达式可以解决这个问题。operator模块为多个算术运算符提供了对应的函数，从而避免了lambda匿名函数。
+
+```python
+from functools import reduce
+from operator import mul
+
+
+def fact(n):
+    """使用reduce函数和一个匿名函数计算阶乘"""
+    return reduce(mul, range(1, n + 1))
+
+
+fact(3)
+#6
+```
+
+- 使用functools.partial冻结参数
+
+functools模块提供了一系列高阶函数，除了reduce，最有用的是partial及其变体partialmethod。functools.partial这个高阶函数用于部分应用一个函数。部分应用是指，基于一个函数创建一个新的可调用对象，把原函数的某些函数固定。使用这个函数可以把接受一个或多个参数的函数改编成需要回调的api。
+
+```python
+from operator import mul
+from functools import partial
+triple = partial(mul, 3)
+#使用partial把一个需要两个参数的函数改编成需要单参数的可调用对象
+triple(7)
+#21
+list(map(triple, range(1, 10)))
+# [3, 6, 9, 12, 15, 18, 21, 24, 27]
+``` 
