@@ -1126,4 +1126,204 @@ triple(7)
 #21
 list(map(triple, range(1, 10)))
 # [3, 6, 9, 12, 15, 18, 21, 24, 27]
-``` 
+```
+
+## 使用一等函数实现设计模式
+
+在有一等函数的语言中可以把“策略”，“命令”,“模版方法”和“访问者”模式中涉及的某些类的实例替换成简单的函数，从而减少样板代码。
+
+### 重构“策略”模式
+
+电商领域有个功能明显可以使用“策略”模式，即根据客户的属性或订单中的商品计算折扣。
+
+假如一个网店制定了下述折扣规则:
+  为积分为1000或以上的顾客提供5%折扣
+  单个商品为20个或以上时提供10%折扣
+  订单中的不同商品达到10个或以上时提供7%折扣
+
+上下文：把一些计算委托给实现不同算法的可互换组件，它提供服务。在下面的示例中，上下文是Order，它会根据不同的算法计算促销折扣。
+
+策略：实现不同算法的组件共同的接口。在下面的示例中，名为Promotion的抽象类扮演这个角色。
+
+具体策略：“策略”的具体子类。下面示例中的fildelityPromo，BulkPromo和LargeOrderPromo。
+
+按照《设计模式：可复用面向对象软件的基础》的说明，具体策略由上下文类的客户选择。
+
+```python
+from abc import ABC, abstractmethod
+from collections import namedtuple
+
+Customer = namedtuple('Customer', 'name fidelity') #顾客类
+
+
+class LineItem: #购物清单
+
+    def __init__(self, product, quantity, price):
+        self.product = product
+        self.quantity = quantity
+        self.price = price
+
+    def total(self):
+        return self.price*self.quantity
+
+
+class Order:  # 上下文
+
+    def __init__(self, customer, cart, promotion=None):
+        self.customer = customer
+        self.cart = list(cart)
+        self.promotion = promotion
+
+    def total(self):
+        if not hasattr(self, '__total'):
+            self.__total = sum(item.total() for item in self.cart)
+            return self.__total
+
+    def due(self):
+        if self.promotion is None:
+            discount = 0
+        else:
+            discount = self.promotion.discount(self)
+        return self.total()-discount
+
+    def __repr__(self):
+        fmt = '<Order total : {:.2f} due: {:.2f}'
+        return fmt.format(self.total(), self.due())
+
+
+class Promotion(ABC):  # 策略：抽象基类
+    @abstractmethod
+    def discount(self, order):
+        """返回折扣金额(正值)"""
+
+
+class FidelityPromo(Promotion):  # 第一个具体策略
+    """为积分为1000或以上的顾客提供5%折扣"""
+
+    def discount(self, order):
+        return order.total() * .05 if order.customer.fidelity >= 1000 else 0
+
+
+class BulkItemPromo(Promotion):  # 第二个具体策略
+    """单个商品为20个或以上时提供10%折扣"""
+
+    def discount(self, order):
+        discount = 0
+        for item in order.cart:
+            if item.quantity >= 20:
+                discount += item.total() * .1
+        return discount
+
+
+class LargeOrderPromo(Promotion):  # 第三个具体策略
+    """订单中的不同商品达到10个或以上时提供7%折扣"""
+
+    def discount(self, order):
+        distinct_items = {item.product for item in order.cart}
+        if len(distinct_items) >= 10:
+            return order.total() * .07
+        return 0
+
+
+joe = Customer("John Doe", 0)
+ann = Customer("Ann Smith", 1100)
+cart = [LineItem('banana', 4, .5), LineItem(
+    'apple', 10, 1.5), LineItem('watermellon', 5, 5.0)]
+Order(joe, cart, FidelityPromo())
+
+
+Order(ann, cart, FidelityPromo())
+banana_cart = [LineItem('banana', 30, .5), LineItem('apple', 10, 1.5)]
+Order(joe, banana_cart, BulkItemPromo())
+long_order = [LineItem(str(item_code), 1, 1.0) for item_code in range(10)]
+Order(joe, long_order, LargeOrderPromo())
+Order(joe, long_order, LargeOrderPromo())
+Order(joe, cart, LargeOrderPromo())
+```
+
+### 使用函数实现“策略”模式
+
+下面的示例是对之前示例的重构，把具体策略换成了简单的函数，而且去掉了Promo抽象类。
+
+```python
+from collections import namedtuple
+
+Customer = namedtuple('Customer', 'name fidelity')
+
+
+class LineItem:
+
+    def __init__(self, product, quantity, price):
+        self.product = product
+        self.quantity = quantity
+        self.price = price
+
+    def total(self):
+        return self.price*self.quantity
+
+
+class Order:  # 上下文
+
+    def __init__(self, customer, cart, promotion=None):
+        self.customer = customer
+        self.cart = list(cart)
+        self.promotion = promotion
+
+    def total(self):
+        if not hasattr(self, '__total'):
+            self.__total = sum(item.total() for item in self.cart)
+            return self.__total
+
+    def due(self):
+        if self.promotion is None:
+            discount = 0
+        else:
+            discount = self.promotion(self)
+        return self.total()-discount
+
+    def __repr__(self):
+        fmt = '<Order total : {:.2f} due: {:.2f}'
+        return fmt.format(self.total(), self.due())
+
+def fidelity_promo(order):  # 第一个具体策略
+    """为积分为1000或以上的顾客提供5%折扣"""
+    return order.total() * .05 if order.customer.fidelity >= 1000 else 0
+
+
+def bulk_item_promo(order):  # 第二个具体策略
+    """单个商品为20个或以上时提供10%折扣"""
+    discount = 0
+    for item in order.cart:
+        if item.quantity >= 20:
+            discount += item.total() * .1
+    return discount
+
+
+def large_order_promo(order):  # 第三个具体策略
+    """订单中的不同商品达到10个或以上时提供7%折扣"""
+    distinct_items = {item.product for item in order.cart}
+    if len(distinct_items) >= 10:
+        return order.total() * .07
+    return 0
+
+
+joe = Customer("John Doe", 0)
+ann = Customer("Ann Smith", 1100)
+cart = [LineItem('banana', 4, .5), LineItem(
+    'apple', 10, 1.5), LineItem('watermellon', 5, 5.0)]
+
+print(Order(joe, cart, fidelity_promo))
+
+
+print(Order(ann, cart, fidelity_promo))
+banana_cart = [LineItem('banana', 30, .5), LineItem('apple', 10, 1.5)]
+print(Order(joe, banana_cart, bulk_item_promo))
+long_order = [LineItem(str(item_code), 1, 1.0) for item_code in range(10)]
+print(Order(joe, long_order, large_order_promo))
+print(Order(joe, long_order, large_order_promo))
+print(Order(joe, cart, large_order_promo))
+```
+
+《设计模式：可复用面向对象软件的基础》一书的作者指出：“策略对象通常是很好的享元。”享元是可共享的对象，可以同时在多个上下文中使用。共享是推荐的做法，这样不必在每个新的上下文(这里是Order实例)中使用相同的策略时不断新建具体策略对象，从而减少消耗。
+
+但是具体策略一般没有内部状态，只是处理上下文中的数据。此时一定要使用普通的函数，别去编写只有一个方法的类，再去实现另一个类声明的单函数接口。函数比用户定义的类的实例轻量。
