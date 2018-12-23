@@ -1241,7 +1241,7 @@ Order(joe, long_order, LargeOrderPromo())
 Order(joe, cart, LargeOrderPromo())
 ```
 
-### 使用函数实现“策略”模式
+- 使用函数实现“策略”模式
 
 下面的示例是对之前示例的重构，把具体策略换成了简单的函数，而且去掉了Promo抽象类。
 
@@ -1327,3 +1327,56 @@ print(Order(joe, cart, large_order_promo))
 《设计模式：可复用面向对象软件的基础》一书的作者指出：“策略对象通常是很好的享元。”享元是可共享的对象，可以同时在多个上下文中使用。共享是推荐的做法，这样不必在每个新的上下文(这里是Order实例)中使用相同的策略时不断新建具体策略对象，从而减少消耗。
 
 但是具体策略一般没有内部状态，只是处理上下文中的数据。此时一定要使用普通的函数，别去编写只有一个方法的类，再去实现另一个类声明的单函数接口。函数比用户定义的类的实例轻量。
+
+- 选择最佳策略：简单的方式
+
+```python
+promos = [fidelity_promo, bulk_item_promo, large_order_promo]
+
+
+def best_promo(order):
+    """选择可用的最佳折扣"""
+    return max(promo(order) for promo in promos)
+```
+
+若想添加新的促销策略，要定义相应的函数，还要把它添加到promos列表中。
+
+- 找出模块中的全部策略
+
+在python中，模块也是一等对象，而且标准库提供了几个处理模块的函数。
+
+globals()：返回一个字典，表示当前的全局符号表。这个符号表始终针对当前模块（对函数或方法来说，是指定义它们的模块，而不是调用它们的模块）。
+
+内省模块的全局命名空间，构建promos列表
+
+```python
+promos = [globals()[name] for name in globals()
+          if name.endswith('_promo') and name != 'best_promo']
+
+
+def best_promo(order):
+    """选择可用的最佳折扣"""
+    return max(promo(order) for promo in promos)
+```
+
+内省单独的promotions模块，构建promos列表
+
+```python
+promos = [func for name, func in inspect.getmembers(
+    promotions, inspect.isfunction)]
+
+def best_promo(order):
+    """选择可用的最佳折扣"""
+    return max(promo(order) for promo in promos)
+```
+
+promotions模块包含所有促销策略。
+inspect.getmember函数用于获取对象(这里是promotions模块)的属性。
+
+动态收集促销折扣函数更为显示的一种方案是使用简单的装饰器。
+
+### “命令”模式
+
+“命令”设计模式也可以通过把函数作为参数传递而简化。
+
+“命令”模式的目的是解耦调用操作的对象（调用者）和提供实现的对象（接收者）。在《设计模式：可复用面向对象软件的基础》所举的示例中，调用者图形应用程序中的菜单项，而接收者是被编辑的文档或应用程序自身。
