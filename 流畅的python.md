@@ -1467,9 +1467,51 @@ def main():
 
 if __name__ == '__main__':
     main()
-#running main()
-# registry -> [<function f1 at 0x10c2e7268>, <function f2 at 0x10c2e70d0>]
+
+# 把上述代码当作脚本运行：
+
+#模块加载时
+# running register <function f1 at 0x107e50b70>
+# running register <function f2 at 0x107e68048>
+
+#运行时
+# running main()
+# registry -> [<function f1 at 0x107e50b70>, <function f2 at0x107e68048>]
 # running f1()
 # running f2()
 # running f3()
 ```
+
+上述示例主要强调，函数装饰器在导入模块时立即执行，而被装饰的函数只在明确调用时运行。
+
+考虑到装饰器在真实代码中的常用方式。示例有两个不寻常的地方。1.装饰器函数与被装饰的函数在同一模块中定义。实际情况是，装饰器通常在一个模块中定义，然后应用到其他模块中的函数。 2.register装饰器返回的函数与通过参数传入的相同。实际中，大多数装饰器会在内部定义一个函数，然后将其返回。
+
+装饰器原封不动的返回被装饰的函数，在很多python web框架中通过这样的装饰器把函数添加到某种中央注册处，例如把url模式映射到生成http响应的函数上的注册处。这种注册装饰器可能会也可能不会修改被装饰的函数。
+
+### 使用装饰器改进“策略”模式
+
+使用注册装饰器可以改进之前的电商促销折扣示例。
+
+```python
+promos=[]
+
+def promotion(promo_func):
+    promos.append(promo_func)
+    return promo_func
+
+@promotion
+def fidelity(order):
+    pass
+
+def best_promo(order):
+    return max(promo(order) for promo in promos)
+```
+
+与之前的方案相比，这个方案有几个优点。
+1.促销策略函数无需使用特殊的名称
+2.@promotion装饰器突出了被装饰的函数的作用，还便于临时禁用某个促销策略：只需注释掉装饰器。
+3.促销折扣策略可以在其他模块中定义，只有使用装饰器装饰即可。
+
+不过多数装饰器会修改被装饰函数。通常它们会定义一个内部函数，然后将其返回，替换被装饰的函数。
+
+### 变量作用域规则
