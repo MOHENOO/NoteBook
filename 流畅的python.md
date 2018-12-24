@@ -1134,6 +1134,8 @@ list(map(triple, range(1, 10)))
 
 ### 重构“策略”模式
 
+![策略模式](策略模式UML.png)
+
 电商领域有个功能明显可以使用“策略”模式，即根据客户的属性或订单中的商品计算折扣。
 
 假如一个网店制定了下述折扣规则:
@@ -1377,6 +1379,97 @@ inspect.getmember函数用于获取对象(这里是promotions模块)的属性。
 
 ### “命令”模式
 
+![命令模式](/命令模式UML.png)
+
 “命令”设计模式也可以通过把函数作为参数传递而简化。
 
 “命令”模式的目的是解耦调用操作的对象（调用者）和提供实现的对象（接收者）。在《设计模式：可复用面向对象软件的基础》所举的示例中，调用者图形应用程序中的菜单项，而接收者是被编辑的文档或应用程序自身。
+
+这个模式的做法是，在二者之间放一个Command对象，让它实现只有一个方法（execute）的接口，调用接收者中的方法执行所需的操作。这样，调用者无需了解接收者的接口，而且不同的接收者可以适应不同的Command子类。调用者有一个具体的命令，通过调用execute方法执行。
+
+命令模式是回调机制的面向对象替代品，但并非始终需要它。
+
+我们可以不为调用者提供一个Command实力，而是给他一个函数。此时，调用者不调用command.execute(),直接调用command()即可。
+
+```python
+class MacroCommand:
+    """一个执行一组命令的命令"""
+
+    def __init__(self, commands):
+        self.commands = list(commands)
+
+    def __call__(self):
+        for command in self.commands:
+            command()
+```
+
+## 函数装饰器和闭包
+
+函数装饰器用于在源码中“标记”函数，以某种方式增强函数的行为。
+
+### 装饰器基础知识
+
+装饰器是可调用的对象，其参数是另一个函数（被装饰的函数）。装饰器可能回处理被装饰的函数，然后把它返回，或者将其替换成另一个函数或可调用对象。
+
+```python
+def deco(func):
+    def inner():
+        print('running inner()')
+    return inner
+
+@deco
+def target():
+    print('running target()')
+
+target()
+#running inner() 调用被装饰的target其实会运行inner
+target
+#<function deco.<locals>.inner at 0x103731158> target现在是inner的应用
+```
+
+装饰器的一大特性是，能把被装饰的函数替换成其他函数。第二个特性是，装饰器在加载模块时立即执行。
+
+### python何时执行装饰器
+
+装饰器的一个关键特性是，它们在被装饰的函数定义之后立即允许。这通常是在导入时（即python加载模块时）。
+
+```python
+registry = []
+
+
+def register(func):
+    print('running register {}'.format(func))
+    registry.append(func)
+    return func
+
+
+@register
+def f1():
+    print('running f1()')
+
+
+@register
+def f2():
+    print('running f2()')
+
+
+def f3():
+    print('running f3()')
+
+
+def main():
+    print('running main()')
+    print('registry ->', registry)
+    f1()
+    f2()
+    f3()
+
+
+if __name__ == '__main__':
+    main()
+#running main()
+# registry -> [<function f1 at 0x10c2e7268>, <function f2 at 0x10c2e70d0>]
+# running f1()
+# running f2()
+# running f3()
+```
