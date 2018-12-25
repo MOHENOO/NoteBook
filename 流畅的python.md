@@ -1515,3 +1515,149 @@ def best_promo(order):
 不过多数装饰器会修改被装饰函数。通常它们会定义一个内部函数，然后将其返回，替换被装饰的函数。
 
 ### 变量作用域规则
+
+一个函数，读取一个局部变量和一个全局变量
+
+```python
+def f1(a):
+    print(a)
+    print(b)
+
+f1(3)
+# 3
+# Traceback (most recent call last):
+#   File "<stdin>", line 1, in <module>
+#   File "<stdin>", line 3, in f1
+# NameError: name 'b' is not defined
+b=6
+f1(3)
+# 3
+# 6
+```
+
+b是局部变量，因为在函数的定义体中给它赋值
+
+```python
+b = 6
+
+
+def f2(a):
+    print(a)
+    print(b)
+    b=9
+
+
+f2(3)
+3
+# Traceback (most recent call last):
+#   File "<stdin>", line 1, in <module>
+#   File "<stdin>", line 3, in f2
+# UnboundLocalError: local variable 'b' referenced before assignment
+```
+
+第二个print语句执行不了，因为python编译函数的定义体时，它判断b是局部变量，因为在函数中给它赋值了。这不是缺陷，而是设计选择：python不要求声明变量，但是假定在函数定义体中赋值的变量是局部变量。如果在函数中赋值时想让解释器把b当作全局变量，要使用global声明。
+
+```python
+b = 6
+
+
+def f2(a):
+    global b
+    print(a)
+    print(b)
+    b = 9
+
+
+f2(3)
+# 3
+# 6
+f2(3)
+# 3
+# 9
+b = 30
+b
+#30
+```
+
+### 闭包
+
+人们有时会把闭包和匿名函数弄混。这是有历史原因的：在函数内部定义函数不常见，直到开始使用匿名函数才会这样做。而且，只有涉及嵌套函数时才有闭包问题。
+
+其实，闭包指延伸作用域的函数，其中包含函数定义体中引用，但不在定义体中定义的非全局变量。函数是不是匿名的没有关系，关键时它能访问定义体之外定义的非全局变量。
+
+计算移动平均值的类
+
+```python
+class Averager():
+    """计算移动平均值"""
+
+    def __init__(self):
+        self.series = []
+
+    def __call__(self, new_value):
+        self.series.append(new_value)
+        total = sum(self.series)
+        return total/len(self.series)
+
+
+avg = Averager()
+avg(10)
+# 10.0
+avg(11)
+# 10.5
+avg(12)
+# 11.0
+```
+
+计算移动平均值的高阶函数
+
+```python
+def make_averager():
+    series = []
+
+    def averager(new_value):
+        series.append(new_value)
+        total = sum(series)
+        return total/len(series)
+
+    return averager
+
+
+avg = make_averager()
+avg(10)
+# 10.0
+avg(11)
+# 10.5
+avg(12)
+# 11.0
+```
+
+Averager类的实例avg在self.series实例属性中存储历史值。但第二个函数中的avg函数在哪里寻找series呢？
+
+series是make_averager函数的局部变量，可是调用avg(10)时，make_averager函数已经返回了，而它的本地作用域也一去不复返了。
+
+在averager函数中，series是自由变量(指未在本地作用域中绑定的变量)。
+
+![averager的闭包延伸到那个函数的作用域之外，包含自由变量series的绑定](/闭包示例.png)
+
+审查返回的averager对象，我们发现python在\_\_code\_\_属性(表示编译后的函数定义体)中保存局部变量和自由变量的名称。
+
+```python
+avg.__code__.co_varnames
+# ('new_value', 'total')
+avg.__code__.co_freevars
+# ('series',)
+```
+
+series的绑定在返回的avg函数的__closure__属性中。avg.__closure__中的各个元素对应于avg__code__.co_freevars中的一个名称。这些元素是cell对象，有个cell__contents属性，保存着真正的值。
+
+```python
+avg.__closure__
+# (<cell at 0x1102b2fa8: list object at 0x110199cc8>,)
+avg.__closure__[0].cell_contents
+# [10, 11, 12]
+```
+
+综上，闭包是一种函数，它会保留定义函数时存在的自由变量的绑定，这样调用函数时，虽然定义作用域不可用了，但是仍能使用那些绑定。
+
+注意，只有嵌套在其他函数中的函数才可能需要处理不在全局作用域中的外部变量。
