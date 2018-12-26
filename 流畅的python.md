@@ -1661,3 +1661,133 @@ avg.__closure__[0].cell_contents
 综上，闭包是一种函数，它会保留定义函数时存在的自由变量的绑定，这样调用函数时，虽然定义作用域不可用了，但是仍能使用那些绑定。
 
 注意，只有嵌套在其他函数中的函数才可能需要处理不在全局作用域中的外部变量。
+
+### nonolocal声明
+
+make_averager函数的方法效率不高。在示例中，我们把所有值存储在历史数列中，然后在每次调用averager时使用sum求和。更好的实现方式是，只存储目前的总值和元素个数，然后使用这两个树计算均值。
+
+```python
+def make_averager():
+    count = 0
+    total = 0
+
+    def averager(new_value):
+        count += 1
+        total += new_value
+        return total/count
+
+    return averager
+
+avg=make_averager()
+avg(10)
+# Traceback (most recent call last):
+#   File "<stdin>", line 1, in <module>
+#   File "<stdin>", line 5, in averager
+# UnboundLocalError: local variable 'count' referenced before assignment
+```
+
+我们在averager的定义体中为count和total进行了赋值操作，这会把定义体中的count和total变为局部变量。对数字，字符串，元祖等不可变类型来说，只能读取，不能更新。如果尝试重新绑定，例如count+=count+1，其实会隐式创建局部变量count。这样count就不是自由变量了，因此不会保存在闭包中。
+
+为了解决这个问题，python引入了nonlocal声明。它的作用是把变量标记为自由变量，即使在函数中为变量赋予新值，闭包中保存的绑定会更新。
+
+使用nonlocal修正
+
+```python
+def make_averager():
+    count = 0
+    total = 0
+
+    def averager(new_value):
+        nonlocal count, total
+        count += 1
+        total += new_value
+        return total/count
+
+    return averager
+
+
+avg = make_averager()
+avg(10)
+# 10.0
+```
+
+### 实现一个简单的装饰器
+
+一个简单的装饰器，输出函数的运行时间
+
+```python
+import time
+
+
+def clock(func):
+    def clocked(*args):
+        t0 = time.perf_counter()
+        result = func(*args)
+        elapsed = time.perf_counter()-t0
+        name = func.__name__
+        arg_str = ', '.join(repr(arg) for arg in args)
+        print('[%0.8fs] %s(%s) -> %r' % (elapsed, name, arg_str, result))
+        return result
+    return clocked
+
+
+@clock
+def snooze(seconds):
+    time.sleep(seconds)
+
+
+@clock
+def factorial(n):
+    return 1 if n < 2 else n*factorial(n-1)
+
+
+if __name__ == '__main__':
+    print('*' * 40, 'Calling snooze(. 123)')
+    snooze(.123)
+    print('*' * 40, 'Calling factorial(6)')
+    print('6! =', factorial(6))
+# **************************************** Calling snooze(. 123)
+# [0.12747568s] snooze(0.123) -> None
+# **************************************** Calling factorial(6)
+# [0.00000099s] factorial(1) -> 1
+# [0.00003017s] factorial(2) -> 2
+# [0.00004558s] factorial(3) -> 6
+# [0.00006013s] factorial(4) -> 24
+# [0.00007511s] factorial(5) -> 120
+# [0.00009238s] factorial(6) -> 720
+# 6! = 720
+```
+
+在示例中，factorial会作为func参数传给clock。然后，clock函数会返回clocked函数，python解释器在背后会把clocked赋值给factorial。其实，将示例作为模块导入后，查看factorial的__name__属性，会返回clocked。所以现在factorial保存的时clocked函数的引用。自此之后，每次调用factorial(n),执行的都是clocked(n)。
+
+装饰器的典型行为是把被装饰函数替换成新函数，二者接受相同的参数，而且(通常)返回被装饰的函数本该返回的值，同时还会做些额外操作。
+
+《设计模式：可复用面向对象软件的基础》中对“装饰器”模式的概述是动态的给一个对象添加一些额外的职责。函数装饰器符合这一说法，但是在实现层面上，python装饰器与书中描述的“装饰器”没有多少相似之处。
+
+示例中的clock装饰器有几个缺点：不支持关键字参数，而且遮盖了被装饰函数的__name__和__doc__属性。可以使用functools.wraps装饰器把相关的属性从func复制到clocked中。此外还可以处理关键字参数。
+
+```python
+import time
+import functools
+
+
+def clock(func):
+    @functools.wraps(func)
+    def clocked(*args, **kwargs):
+        t0 = time.perf_counter()
+        result = func(*args, **kwargs)
+        elapsed = time.perf_counter()-t0
+        name = func.__name__
+        arg_lst = []
+        if args:
+            arg_lst.append(', '.join(repr(arg) for arg in args))
+        if kwargs:
+            pairs = ['%s=%r ' % (k, w) for k, w in sorted(kwargs.items())]
+            arg_lst.append(', '.join(pairs))
+        arg_str = ', '.join(arg_lst)
+        print('[%0.8fs] %s(%s) -> %r' % (elapsed, name, arg_str, result))
+        return result
+    return clocked
+```
+
+### 标准库中的装饰器
