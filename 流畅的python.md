@@ -1791,3 +1791,135 @@ def clock(func):
 ```
 
 ### 标准库中的装饰器
+
+Python内置了三个用于装饰方法的函数：property，classmethod和staticmethod。另一个常见的装饰器时functools.wraps,它的作用是协助构建行为良好的装饰器。
+标准库中最值得关注的两个装饰器是lru_cache和全新的singledispath。这两个装饰器都在functools模块中定义。
+
+- 使用functools.lru_cache做备忘
+
+functools.lru_cache实现了备忘功能，它把耗时的函数的结果保存起来，避免传入相同的参数时重复计算。缓存不会无限制增长，一段时间不用的缓存条目会被扔掉。
+
+生成第n个斐波那契数(递归函数)
+
+```python
+import time
+import functools
+
+
+def clock(func):
+    @functools.wraps(func)
+    def clocked(*args, **kwargs):
+        t0 = time.perf_counter()
+        result = func(*args, **kwargs)
+        elapsed = time.perf_counter()-t0
+        name = func.__name__
+        arg_lst = []
+        if args:
+            arg_lst.append(', '.join(repr(arg) for arg in args))
+        if kwargs:
+            pairs = ['%s=%r ' % (k, w) for k, w in sorted(kwargs.items())]
+            arg_lst.append(', '.join(pairs))
+        arg_str = ', '.join(arg_lst)
+        print('[%0.8fs] %s(%s) -> %r' % (elapsed, name, arg_str, result))
+        return result
+    return clocked
+
+
+@clock
+def fibonacci(n):
+    if n < 2:
+        return n
+    return fibonacci(n-2)+fibonacci(n-1)
+
+
+if __name__ == '__main__':
+    print(fibonacci(6))
+# [0.00000044s] fibonacci(0) -> 0
+# [0.00000052s] fibonacci(1) -> 1
+# [0.00008924s] fibonacci(2) -> 1
+# [0.00000032s] fibonacci(1) -> 1
+# [0.00000035s] fibonacci(0) -> 0
+# [0.00000031s] fibonacci(1) -> 1
+# [0.00001491s] fibonacci(2) -> 1
+# [0.00002912s] fibonacci(3) -> 2
+# [0.00013774s] fibonacci(4) -> 3
+# [0.00000024s] fibonacci(1) -> 1
+# [0.00000025s] fibonacci(0) -> 0
+# [0.00000030s] fibonacci(1) -> 1
+# [0.00001374s] fibonacci(2) -> 1
+# [0.00002719s] fibonacci(3) -> 2
+# [0.00000025s] fibonacci(0) -> 0
+# [0.00000031s] fibonacci(1) -> 1
+# [0.00001351s] fibonacci(2) -> 1
+# [0.00000025s] fibonacci(1) -> 1
+# [0.00000028s] fibonacci(0) -> 0
+# [0.00000047s] fibonacci(1) -> 1
+# [0.00019315s] fibonacci(2) -> 1
+# [0.00020678s] fibonacci(3) -> 2
+# [0.00023393s] fibonacci(4) -> 3
+# [0.00027453s] fibonacci(5) -> 5
+# [0.00042716s] fibonacci(6) -> 8
+# 8
+```
+
+使用缓存实现
+
+```python
+import time
+import functools
+
+
+def clock(func):
+    @functools.wraps(func)
+    def clocked(*args, **kwargs):
+        t0 = time.perf_counter()
+        result = func(*args, **kwargs)
+        elapsed = time.perf_counter()-t0
+        name = func.__name__
+        arg_lst = []
+        if args:
+            arg_lst.append(', '.join(repr(arg) for arg in args))
+        if kwargs:
+            pairs = ['%s=%r ' % (k, w) for k, w in sorted(kwargs.items())]
+            arg_lst.append(', '.join(pairs))
+        arg_str = ', '.join(arg_lst)
+        print('[%0.8fs] %s(%s) -> %r' % (elapsed, name, arg_str, result))
+        return result
+    return clocked
+
+
+@functools.lru_cache()
+@clock
+#这里叠放了装饰器@lru_cache()应用到@clock返回的函数上。
+def fibonacci(n):
+    if n < 2:
+        return n
+    return fibonacci(n-2)+fibonacci(n-1)
+
+
+if __name__ == '__main__':
+    print(fibonacci(6))
+# [0.00000036s] fibonacci(0) -> 0
+# [0.00000049s] fibonacci(1) -> 1
+# [0.00034450s] fibonacci(2) -> 1
+# [0.00000093s] fibonacci(3) -> 2
+# [0.00036186s] fibonacci(4) -> 3
+# [0.00000056s] fibonacci(5) -> 5
+# [0.00037741s] fibonacci(6) -> 8
+# 8
+```
+
+必须像常规函数那样调用lru_cache,及附带(),这么做的原因时，lru_cache可以接受配置参数。maxsize参数指定存储多少个调用的结果。为了得到最佳的性能，maxsize应该设为2的幂。typed参数如果设为True，把不同的参数类型得到的结果分开保存。lru_cache使用字典存储结果，而且键根据调用时传入的定位参数和关键字参数创建，所以它的所有参数必须时可散列的。
+
+- 单分派泛函数
+
+假设我们在开发一个调试Web应用的工具，我们想生成HTML，显示不同类型的Python对象。
+
+```python
+import html
+
+
+def htmlize(obj):
+    content = html.escape(repr(obj))
+    return '<pre>{} </pre>'.format(content)
+```
