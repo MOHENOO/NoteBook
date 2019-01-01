@@ -4,8 +4,8 @@
 
 ```python
 def select_sort(a):
-    count=len(a)
-    for i in range(count):
+    count=len(a) #len=length
+    for i in range(count): #range [5,3,4,2,1]
         min=i
         for j in range(i+1,count):
             if a[j]<a[min]:
