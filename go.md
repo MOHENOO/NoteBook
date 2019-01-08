@@ -1335,6 +1335,44 @@ func main() {
 
 若你只需要索引，去掉 , value 的部分即可。
 
+#### 练习：切片
+
+实现 Pic。它应当返回一个长度为 dy 的切片，其中每个元素是一个长度为 dx，元素类型为 uint8 的切片。当你运行此程序时，它会将每个整数解释为灰度值（好吧，其实是蓝度值）并显示它所对应的图像。
+
+图像的选择由你来定。几个有趣的函数包括
+
+```go
+(x+y)/2
+x*y
+x^y
+x*log(y)
+x%(y+1)
+```
+
+（提示：需要使用循环来分配 [][]uint8 中的每个 []uint8；请使用 uint8(intValue) 在类型之间转换；你可能会用到 math 包中的函数。）
+
+```go
+package main
+
+import "golang.org/x/tour/pic"
+
+func Pic(dx, dy int) [][]uint8 {
+	a := make([][]uint8, dy)
+	for x := range a {
+		b := make([]uint8, dx)
+		for y := range b {
+			b[y] = uint8(x*y)
+		}
+		a[x] = b
+	}
+	return a
+}
+
+func main() {
+	pic.Show(Pic)
+}
+```
+
 #### 映射
 
 ```go
@@ -1457,6 +1495,36 @@ elem, ok = m[key]
 elem, ok := m[key]
 ```
 
+#### 练习：映射
+
+实现 WordCount。它应当返回一个映射，其中包含字符串 s 中每个“单词”的个数。函数 wc.Test 会对此函数执行一系列测试用例，并输出成功还是失败。
+
+你会发现 strings.Fields 很有帮助。
+
+```go
+package main
+
+import (
+	"strings"
+
+	"golang.org/x/tour/wc"
+)
+
+func WordCount(s string) map[string]int {
+	words := strings.Fields(s)
+	result := make(map[string]int)
+	for _,i := range words {
+		result[i] += 1
+	}
+
+	return result
+}
+
+func main() {
+	wc.Test(WordCount)
+}
+```
+
 #### 函数值
 
 ```go
@@ -1525,6 +1593,36 @@ func main() {
 Go 函数可以是一个闭包。闭包是一个函数值，它引用了其函数体之外的变量。该函数可以访问并赋予其引用的变量的值，换句话说，该函数被“绑定”在了这些变量上。
 
 例如，函数 adder 返回一个闭包。每个闭包都被绑定在其各自的 sum 变量上。
+
+#### 练习：斐波纳契闭包
+
+让我们用函数做些好玩的事情。
+
+实现一个 fibonacci 函数，它返回一个函数（闭包），该闭包返回一个斐波纳契数列 (0, 1, 1, 2, 3, 5, ...)。
+
+```go
+package main
+
+import "fmt"
+
+// fibonacci is a function that returns
+// a function that returns an int.
+func fibonacci() func() int {
+	a,b:=0,1
+	return func() int {
+		temp:=a
+		a,b=b,a+b
+		return temp
+	}
+}
+
+func main() {
+	f := fibonacci()
+	for i := 0; i < 10; i++ {
+		fmt.Println(f())
+	}
+}
+```
 
 ## 方法和接口
 
@@ -2208,6 +2306,44 @@ type Stringer interface {
 
 Stringer 是一个可以用字符串描述自己的类型。fmt 包（还有很多包）都通过此接口来打印值。
 
+### 练习：Stringer
+
+通过让 IPAddr 类型实现 fmt.Stringer 来打印点号分隔的地址。
+
+例如，IPAddr{1, 2, 3, 4} 应当打印为 "1.2.3.4"。
+
+```go
+package main
+
+import (
+	"fmt"
+	"strconv"
+	"strings"
+)
+
+type IPAddr [4]byte
+
+// TODO: Add a "String() string" method to IPAddr.
+
+func (p IPAddr) String() string {
+	a := make([]string, 4)
+	for i, v := range p {
+		a[i] = strconv.Itoa(int(v))
+	}
+	return strings.Join(a, ".")
+}
+
+func main() {
+	hosts := map[string]IPAddr{
+		"loopback":  {127, 0, 0, 1},
+		"googleDNS": {8, 8, 8, 8},
+	}
+	for name, ip := range hosts {
+		fmt.Printf("%v: %v\n", name, ip)
+	}
+}
+```
+
 ### 错误
 
 ```go
@@ -2338,3 +2474,302 @@ type Image interface {
 注意: Bounds 方法的返回值 Rectangle 实际上是一个 image.Rectangle，它在 image 包中声明。
 
 color.Color 和 color.Model 类型也是接口，但是通常因为直接使用预定义的实现 image.RGBA 和 image.RGBAModel 而被忽视了。这些接口和类型由 image/color 包定义。
+
+## 并发
+
+### Go程
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func say(s string) {
+	for i := 0; i < 5; i++ {
+		time.Sleep(100 * time.Millisecond)
+		fmt.Println(s)
+	}
+}
+
+func main() {
+	go say("world")
+	say("hello")
+}
+// hello
+// world
+// world
+// hello
+// world
+// hello
+// world
+// hello
+// world
+// hello
+```
+
+Go 程（goroutine）是由 Go 运行时管理的轻量级线程。
+
+```go
+go f(x, y, z)
+```
+
+会启动一个新的 Go 程并执行
+
+```go
+f(x, y, z)
+```
+
+f, x, y 和 z 的求值发生在当前的 Go 程中，而 f 的执行发生在新的 Go 程中。
+
+Go 程在相同的地址空间中运行，因此在访问共享的内存时必须进行同步。sync 包提供了这种能力，不过在 Go 中并不经常用到，因为还有其它的办法
+
+### 信道
+
+```go
+package main
+
+import "fmt"
+
+func sum(s []int, c chan int) {
+	sum := 0
+	for _, v := range s {
+		sum += v
+	}
+	c <- sum //将和送入c
+}
+
+func main() {
+	s := []int{7, 2, 8, -9, 4, 0}
+
+	c := make(chan int)
+	go sum(s[:len(s)/2], c)
+	go sum(s[len(s)/2:], c)
+	x, y := <-c, <-c //从c中接收
+
+	fmt.Println(x, y, x+y)
+}
+// -5 17 12
+```
+
+信道是带有类型的管道，你可以通过它用信道操作符 <- 来发送或者接收值。
+
+ch <- v    // 将 v 发送至信道 ch。
+v := <-ch  // 从 ch 接收值并赋予 v。
+（“箭头”就是数据流的方向。）
+
+和映射与切片一样，信道在使用前必须创建：
+
+ch := make(chan int)
+默认情况下，发送和接收操作在另一端准备好之前都会阻塞。这使得 Go 程可以在没有显式的锁或竞态变量的情况下进行同步。
+
+以下示例对切片中的数进行求和，将任务分配给两个 Go 程。一旦两个 Go 程完成了它们的计算，它就能算出最终的结果。
+
+### 带缓冲的信道
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	ch := make(chan int, 2)
+	ch <- 1
+	ch <- 2
+	fmt.Println(<-ch)
+	fmt.Println(<-ch)
+}
+```
+
+信道可以是 带缓冲的。将缓冲长度作为第二个参数提供给 make 来初始化一个带缓冲的信道：
+
+ch := make(chan int, 100)
+仅当信道的缓冲区填满后，向其发送数据时才会阻塞。当缓冲区为空时，接受方会阻塞。
+
+### range和close
+
+```go
+package main
+
+import "fmt"
+
+func fibonacci(n int, c chan int) {
+	x, y := 0, 1
+	for i := 0; i < n; i++ {
+		c <- x
+		x, y = y, x+y
+	}
+	close(c)
+}
+
+func main() {
+	c := make(chan int, 10)
+	go fibonacci(cap(c), c)
+	for i := range c {
+		fmt.Println(i)
+	}
+}
+```
+
+发送者可通过 close 关闭一个信道来表示没有需要发送的值了。接收者可以通过为接收表达式分配第二个参数来测试信道是否被关闭：若没有值可以接收且信道已被关闭，那么在执行完
+
+```go
+v, ok := <-ch
+```
+
+之后 ok 会被设置为 false。
+
+循环 for i := range c 会不断从信道接收值，直到它被关闭。
+
+/* 注意：* 只有发送者才能关闭信道，而接收者不能。向一个已经关闭的信道发送数据会引发程序恐慌（panic）。
+
+/* 还要注意：* 信道与文件不同，通常情况下无需关闭它们。只有在必须告诉接收者不再有需要发送的值时才有必要关闭，例如终止一个 range 循环。
+
+### select语句
+
+```go
+package main
+
+import "fmt"
+
+func fibonacci(c, quit chan int) {
+	x, y := 0, 1
+	for {
+		select {
+		case c <- x:
+			x, y = y, x+y
+		case <-quit:
+			fmt.Println("quit")
+			return
+		}
+	}
+}
+
+func main() {
+	c := make(chan int)
+	quit := make(chan int)
+	go func() {
+		for i := 0; i < 10; i++ {
+			fmt.Println(<-c)
+		}
+		quit <- 0
+	}()
+	fibonacci(c, quit)
+}
+// 0
+// 1
+// 1
+// 2
+// 3
+// 5
+// 8
+// 13
+// 21
+// 34
+// quit
+```
+
+select 语句使一个 Go 程可以等待多个通信操作。
+
+select 会阻塞到某个分支可以继续执行为止，这时就会执行该分支。当多个分支都准备好时会随机选择一个执行。
+
+### 默认选择
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	tick := time.Tick(100 * time.Millisecond)
+	boom := time.After(500 * time.Millisecond)
+	for {
+		select {
+		case <-tick:
+			fmt.Println("tick.")
+		case <-boom:
+			fmt.Println("BOOM!")
+			return
+		default:
+			fmt.Println("    .")
+			time.Sleep(50 * time.Millisecond)
+		}
+	}
+}
+```
+
+当 select 中的其它分支都没有准备好时，default 分支就会执行。
+
+为了在尝试发送或者接收时不发生阻塞，可使用 default 分支：
+
+```go
+select {
+case i := <-c:
+    // 使用 i
+default:
+    // 从 c 中接收会阻塞时执行
+}
+```
+
+### sync.Mutex
+
+```go
+package main
+
+import (
+	"fmt"
+	"sync"
+	"time"
+)
+
+//SafeCounter的并发使用是安全的。
+type SafeCounter struct {
+	v   map[string]int
+	mux sync.Mutex
+}
+
+//Inc 增加给定key的计数器的值
+func (c *SafeCounter) Inc(key string) {
+	c.mux.Lock()
+	//Lock之后同一时刻只有一个goroutine能访问c.v
+	c.v[key]++
+	c.mux.Unlock()
+}
+
+//Value 返回给定key的计数器的当前值。
+func (c *SafeCounter) Value(key string) int {
+	c.mux.Lock()
+	//Lock之后同一时刻只有一个goroutine能访问c.v
+	defer c.mux.Unlock()
+	return c.v[key]
+}
+
+func main() {
+	c := SafeCounter{v: make(map[string]int)}
+	for i := 0; i < 1000; i++ {
+		go c.Inc("somekey")
+	}
+
+	time.Sleep(time.Second)
+	fmt.Println(c.Value("somekey"))
+}
+```
+
+我们已经看到信道非常适合在各个 Go 程间进行通信。
+
+但是如果我们并不需要通信呢？比如说，若我们只是想保证每次只有一个 Go 程能够访问一个共享的变量，从而避免冲突？
+
+这里涉及的概念叫做 _互斥（mutual_exclusion）_ ，我们通常使用 _互斥锁（Mutex）_ 这一数据结构来提供这种机制。
+
+Go 标准库中提供了 sync.Mutex 互斥锁类型及其两个方法：
+
+Lock
+Unlock
+我们可以通过在代码前调用 Lock 方法，在代码后调用 Unlock 方法来保证一段代码的互斥执行。参见 Inc 方法。
+
+我们也可以用 defer 语句来保证互斥锁一定会被解锁。参见 Value 方法。
