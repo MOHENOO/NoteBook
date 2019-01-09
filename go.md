@@ -2402,6 +2402,54 @@ fmt.Println("Converted integer:", i)
 
 error 为 nil 时表示成功；非 nil 的 error 表示失败。
 
+### 练习：错误
+
+从之前的练习中复制 Sqrt 函数，修改它使其返回 error 值。
+
+Sqrt 接受到一个负数时，应当返回一个非 nil 的错误值。复数同样也不被支持。
+
+创建一个新的类型
+
+type ErrNegativeSqrt float64
+并为其实现
+
+func (e ErrNegativeSqrt) Error() string
+方法使其拥有 error 值，通过 ErrNegativeSqrt(-2).Error() 调用该方法应返回 "cannot Sqrt negative number: -2"。
+
+注意: 在 Error 方法内调用 fmt.Sprint(e) 会让程序陷入死循环。可以通过先转换 e 来避免这个问题：fmt.Sprint(float64(e))。这是为什么呢？
+
+修改 Sqrt 函数，使其接受一个负数时，返回 ErrNegativeSqrt 值。
+
+```go
+package main
+
+import (
+	"fmt"
+)
+
+type ErrNegativeSqrt float64
+
+func (e ErrNegativeSqrt) Error() string {
+	return fmt.Sprintf("cannot Sqrt negative number:%v\n", float64(e))
+}
+
+func Sqrt(x float64) (float64, error) {
+	if x < 0 {
+		return x, ErrNegativeSqrt(x)
+	}
+	z := x
+	for i := 0; i < 5; i++ {
+		z -= (z*z - x) / (2 * z)
+	}
+	return z, nil
+}
+
+func main() {
+	fmt.Println(Sqrt(2))
+	fmt.Println(Sqrt(-2))
+}
+```
+
 ### Reader
 
 ```go
@@ -2442,6 +2490,83 @@ Read 用数据填充给定的字节切片并返回填充的字节数和错误值
 
 示例代码创建了一个 strings.Reader 并以每次 8 字节的速度读取它的输出。
 
+### 练习：Reader
+
+实现一个 Reader 类型，它产生一个 ASCII 字符 'A' 的无限流。
+
+```go
+package main
+
+import "golang.org/x/tour/reader"
+
+type MyReader struct{}
+
+// TODO: Add a Read([]byte) (int, error) method to MyReader.
+
+func (r MyReader) Read(b []byte) (int, error) {
+	for i := range b {
+		b[i] = 'A'
+	}
+	return 1, nil
+}
+
+func main() {
+	reader.Validate(MyReader{})
+}
+```
+
+### 练习：rot13Reader
+
+有种常见的模式是一个 io.Reader 包装另一个 io.Reader，然后通过某种方式修改其数据流。
+
+例如，gzip.NewReader 函数接受一个 io.Reader（已压缩的数据流）并返回一个同样实现了 io.Reader 的 *gzip.Reader（解压后的数据流）。
+
+编写一个实现了 io.Reader 并从另一个 io.Reader 中读取数据的 rot13Reader，通过应用 rot13 代换密码对数据流进行修改。
+
+rot13Reader 类型已经提供。实现 Read 方法以满足 io.Reader。
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+	"strings"
+)
+
+type rot13Reader struct {
+	r io.Reader
+}
+
+func rot13(b byte) byte {
+	switch {
+	case 'A' <= b && b <= 'M':
+		b = b + 13
+	case 'M' < b && b <= 'Z':
+		b = b - 13
+	case 'a' <= b && b <= 'm':
+		b = b + 13
+	case 'm' < b && b <= 'z':
+		b = b - 13
+	}
+	return b
+}
+
+func (mr rot13Reader) Read(b []byte) (int, error) {
+	n, e := mr.r.Read(b)
+	for i := range b {
+		b[i] = rot13(b[i])
+	}
+	return n, e
+}
+
+func main() {
+	s := strings.NewReader("Lbh penpxrq gur pbqr!")
+	r := rot13Reader{s}
+	io.Copy(os.Stdout, &r)
+}
+```
+
 ### 图像
 
 ```go
@@ -2474,6 +2599,48 @@ type Image interface {
 注意: Bounds 方法的返回值 Rectangle 实际上是一个 image.Rectangle，它在 image 包中声明。
 
 color.Color 和 color.Model 类型也是接口，但是通常因为直接使用预定义的实现 image.RGBA 和 image.RGBAModel 而被忽视了。这些接口和类型由 image/color 包定义。
+
+### 练习：图像
+
+还记得之前编写的图片生成器 吗？我们再来编写另外一个，不过这次它将会返回一个 image.Image 的实现而非一个数据切片。
+
+定义你自己的 Image 类型，实现必要的方法并调用 pic.ShowImage。
+
+Bounds 应当返回一个 image.Rectangle ，例如 image.Rect(0, 0, w, h)。
+
+ColorModel 应当返回 color.RGBAModel。
+
+At 应当返回一个颜色。上一个图片生成器的值 v 对应于此次的 color.RGBA{v, v, 255, 255}。
+
+```go
+package main
+
+import (
+	"image"
+	"image/color"
+
+	"golang.org/x/tour/pic"
+)
+
+type Image struct{}
+
+func (i Image) ColorModel() color.Model {
+	return color.RGBAModel
+}
+
+func (i Image) Bounds() image.Rectangle {
+	return image.Rect(0, 0, 200, 200)
+}
+
+func (i Image) At(x, y int) color.Color {
+	return color.RGBA{uint8(x), uint8(y), uint8(255), uint8(255)}
+}
+
+func main() {
+	m := Image{}
+	pic.ShowImage(m)
+}
+```
 
 ## 并发
 
@@ -2713,6 +2880,81 @@ case i := <-c:
     // 使用 i
 default:
     // 从 c 中接收会阻塞时执行
+}
+```
+
+### 练习：等价二叉查找树
+
+实现 Walk 函数。
+
+测试 Walk 函数。
+
+函数 tree.New(k) 用于构造一个随机结构的已排序二叉查找树，它保存了值 k, 2k, 3k, ..., 10k。
+创建一个新的信道 ch 并且对其进行步进：
+go Walk(tree.New(1), ch)
+然后从信道中读取并打印 10 个值。应当是数字 1, 2, 3, ..., 10。
+
+用 Walk 实现 Same 函数来检测 t1 和 t2 是否存储了相同的值。
+
+测试 Same 函数。
+
+Same(tree.New(1), tree.New(1)) 应当返回 true，而 Same(tree.New(1), tree.New(2)) 应当返回 false。
+
+Tree 的文档可在这里找到。
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"golang.org/x/tour/tree"
+)
+
+// type Tree struct{
+// 	Left *Tree
+// 	Value int
+// 	Right *Tree
+// }
+
+func sendvalue(t *tree.Tree, ch chan int) {
+	if t == nil {
+		return
+	}
+	sendvalue(t.Left, ch)
+	ch <- t.Value
+	sendvalue(t.Right, ch)
+}
+
+//Walk步进tree t 将所有的值从tree发送到channel ch。
+func Walk(t *tree.Tree, ch chan int) {
+	sendvalue(t, ch)
+	close(ch)
+}
+
+//Same 检测树t1和t2是否含有相同的值
+func Same(t1, t2 *tree.Tree) bool {
+	ch1 := make(chan int)
+	ch2 := make(chan int)
+	go Walk(t1, ch1)
+	go Walk(t2, ch2)
+	for v := range ch1 {
+		if v != <-ch2 {
+			return false
+		}
+	}
+	return true
+}
+
+func main() {
+	var ch = make(chan int)
+	go Walk(tree.New(1), ch)
+	for v := range ch {
+		fmt.Println(v)
+	}
+
+	fmt.Println(Same(tree.New(1), tree.New(1)))
+	fmt.Println(Same(tree.New(2), tree.New(3)))
 }
 ```
 
