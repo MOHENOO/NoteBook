@@ -302,6 +302,45 @@ func main() {
 布尔类型为 false，
 字符串为 ""（空字符串）。
 
+### iota枚举
+
+Go里面有一个关键字`iota`，这个关键字用来声明`enum`的时候采用，它默认开始值是0，const中每增加一行加1：
+```Go
+
+package main
+
+import (
+	"fmt"
+)
+
+const (
+	x = iota // x == 0
+	y = iota // y == 1
+	z = iota // z == 2
+	w        // 常量声明省略值时，默认和之前一个值的字面相同。这里隐式地说w = iota，因此w == 3。其实上面y和z可同样不用"= iota"
+)
+
+const v = iota // 每遇到一个const关键字，iota就会重置，此时v == 0
+
+const (
+	h, i, j = iota, iota, iota //h=0,i=0,j=0 iota在同一行值相同
+)
+
+const (
+	a       = iota //a=0
+	b       = "B"
+	c       = iota             //c=2
+	d, e, f = iota, iota, iota //d=3,e=3,f=3
+	g       = iota             //g = 4
+)
+
+func main() {
+	fmt.Println(a, b, c, d, e, f, g, h, i, j, x, y, z, w, v)
+}
+```
+
+>除非被显式设置为其它值或`iota`，每个`const`分组的第一个常量被默认设置为它的0值，第二及后续的常量被默认设置为它前面那个常量的值，如果前面那个常量的值是`iota`，则它也被设置为`iota`。
+
 #### 类型转换
 
 ```go
@@ -2730,7 +2769,9 @@ v := <-ch  // 从 ch 接收值并赋予 v。
 和映射与切片一样，信道在使用前必须创建：
 
 ch := make(chan int)
-默认情况下，发送和接收操作在另一端准备好之前都会阻塞。这使得 Go 程可以在没有显式的锁或竞态变量的情况下进行同步。
+默认情况下，发送和接收操作在另一端准备好之前都会阻塞。
+所谓阻塞，也就是如果读取（value := <-ch）它将会被阻塞，直到有数据接收。其次，任何发送（ch<-5）将会被阻塞，直到数据被读出。无缓冲channel是在多个goroutine之间同步很棒的工具。
+这使得 Go 程可以在没有显式的锁或竞态变量的情况下进行同步。
 
 以下示例对切片中的数进行求和，将任务分配给两个 Go 程。一旦两个 Go 程完成了它们的计算，它就能算出最终的结果。
 
@@ -2882,6 +2923,55 @@ default:
     // 从 c 中接收会阻塞时执行
 }
 ```
+
+### 超时
+
+有时候会出现goroutine阻塞的情况，那么我们如何避免整个程序进入阻塞的情况呢？我们可以利用select来设置超时，通过如下的方式实现：
+
+```Go
+
+func main() {
+	c := make(chan int)
+	o := make(chan bool)
+	go func() {
+		for {
+			select {
+				case v := <- c:
+					println(v)
+				case <- time.After(5 * time.Second):
+					println("timeout")
+					o <- true
+					break
+			}
+		}
+	}()
+	<- o
+}
+```
+
+### runtime goroutine
+
+runtime包中有几个处理goroutine的函数：
+
+- Goexit
+
+	退出当前执行的goroutine，但是defer函数还会继续调用
+
+- Gosched
+
+	让出当前goroutine的执行权限，调度器安排其他等待的任务运行，并在下次某个时候从该位置恢复执行。
+
+- NumCPU
+
+	返回 CPU 核数量
+	
+- NumGoroutine
+
+	返回正在执行和排队的任务总数
+	
+- GOMAXPROCS
+
+	用来设置可以并行计算的CPU核数的最大值，并返回之前的值。
 
 ### 练习：等价二叉查找树
 
