@@ -2917,25 +2917,20 @@ import (
 // 	Right *Tree
 // }
 
-func sendvalue(t *tree.Tree, ch chan int) {
+//Walk步进tree t 将所有的值从tree发送到channel ch。
+func Walk(t *tree.Tree, ch chan int) {
 	if t == nil {
 		return
 	}
-	sendvalue(t.Left, ch)
+	Walk(t.Left, ch)
 	ch <- t.Value
-	sendvalue(t.Right, ch)
-}
-
-//Walk步进tree t 将所有的值从tree发送到channel ch。
-func Walk(t *tree.Tree, ch chan int) {
-	sendvalue(t, ch)
-	close(ch)
+	Walk(t.Right, ch)
 }
 
 //Same 检测树t1和t2是否含有相同的值
 func Same(t1, t2 *tree.Tree) bool {
-	ch1 := make(chan int)
-	ch2 := make(chan int)
+	ch1 := make(chan int, 10)
+	ch2 := make(chan int, 10)
 	go Walk(t1, ch1)
 	go Walk(t2, ch2)
 	for v := range ch1 {
@@ -2947,13 +2942,7 @@ func Same(t1, t2 *tree.Tree) bool {
 }
 
 func main() {
-	var ch = make(chan int)
-	go Walk(tree.New(1), ch)
-	for v := range ch {
-		fmt.Println(v)
-	}
-
-	fmt.Println(Same(tree.New(1), tree.New(1)))
+	//fmt.Println(Same(tree.New(1), tree.New(1)))
 	fmt.Println(Same(tree.New(2), tree.New(3)))
 }
 ```
@@ -3107,5 +3096,244 @@ var fetcher = fakeFetcher{
 			"https://golang.org/pkg/",
 		},
 	},
+}
+```
+
+## 代码漫步
+
+### Go中的一等函数
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/rand"
+)
+
+const (
+	win            = 100
+	gamesPerSeries = 10
+)
+
+//总分score包括每个玩家前几轮的得分以及本轮中当前玩家的得分。
+type score struct {
+	player, opponent, thisTurn int
+}
+
+//action将一个动作随机转换为一个分数(一个函数类型签名描述了其实参与返回值类型)
+type action func(current score) (result score, turnIsOver bool)
+
+//roll返回模拟一次掷骰产生的(result,turnIsOver)。
+//若掷骰的结果outcome为1,那么这一轮thisTurn的分数就会被抛弃，
+//然后玩家的角色互换。否则，此次掷骰的值就会计入这一轮thisTurn中。
+func roll(s score) (score, bool) {
+	outcome := rand.Intn(6) + 1
+	if outcome == 1 {
+		return score{s.opponent, s.player, 0}, true
+	}
+	return score{s.player, s.opponent, outcome + s.thisTurn}, false
+}
+
+func stay(s score) (score, bool) {
+	return score{s.opponent, s.player + s.thisTurn, 0}, true
+}
+
+//strategy为任何给定的分数score返回一个动作action
+type strategy func(score) action
+
+//strategy返回一个策略，该策略继续掷骰直到这一轮thisTurn至少为k，然后停留。
+func stayAtK(k int) strategy {
+	//Go中可以声明匿名函数，函数字面是闭包的：它们继承了声明它们所在函数的作用域。
+	return func(s score) action {
+		if s.thisTurn >= k {
+			return stay
+		}
+		return roll
+	}
+}
+
+//play模拟一场Pig游戏并返回赢家(0或1)。
+func play(strategy0, strategy1 strategy) int {
+	strategies := []strategy{strategy0, strategy1}
+	var s score
+	var turnIsOver bool
+	//随机决定谁先玩
+	currentPlayer := rand.Intn(2)
+	for s.player+s.thisTurn < win {
+		action := strategies[currentPlayer](s)
+		s, turnIsOver = action(s)
+		if turnIsOver {
+			currentPlayer = (currentPlayer + 1) % 2
+		}
+	}
+	return currentPlayer
+}
+
+//roundRobin模拟每一对策略strategies之间的一系列游戏。
+func roundRobin(strategies []strategy) ([]int, int) {
+	wins := make([]int, len(strategies))
+	for i := 0; i < len(strategies); i++ {
+		for j := i + 1; j < len(strategies); j++ {
+			for k := 0; k < gamesPerSeries; k++ {
+				winner := play(strategies[i], strategies[j])
+				if winner == 0 {
+					wins[i]++
+				} else {
+					wins[j]++
+				}
+			}
+		}
+	}
+
+	gamesPerStrategy := gamesPerSeries * (len(strategies) - 1)
+	return wins, gamesPerStrategy
+}
+
+//ratioString接受一个整数值的列表并返回一个字符串，
+//它列出了每一个值以及它对于所有值之和的百分比
+func ratioString(vals ...int) string {
+	//接受数量可变的实参。这些参数实参在该函数中可作为一个切片使用。
+	total := 0
+	for _, val := range vals {
+		total += val
+	}
+
+	s := ""
+	for _, val := range vals {
+		if s != "" {
+			s += ", "
+		}
+		pct := 100 * float64(val) / float64(total)
+		s += fmt.Sprintf("%d/%d (%0.1f%%)", val, total, pct)
+	}
+	return s
+}
+
+func main() {
+	//定义了100个基本策略，模拟一场比赛，并打印出每一个策略的输赢记录。
+	strategies := make([]strategy, win)
+	for k := range strategies {
+		strategies[k] = stayAtK(k + 1)
+	}
+	wins, games := roundRobin(strategies)
+
+	for k := range strategies {
+		fmt.Printf("Wins, losses staying at k=% 4d: %s\n", k+1, ratioString(wins[k], games-wins[k]))
+	}
+}
+```
+
+### 通过通信共享内存
+
+```go
+package main
+
+import (
+	"log"
+	"net/http"
+	"time"
+)
+
+const (
+	numPollers     = 2
+	polllnterval   = 60 * time.Second
+	statuslnterval = 10 * time.Second
+	errTimeout     = 10 * time.Second
+)
+
+var urls = []string{
+	"http://www.google.com/",
+	"http://golang.org/",
+	"http://blog.golang.org/",
+}
+
+//State表示一个URL最后的已知状态。
+type State struct {
+	url    string
+	status string
+}
+
+/* StateMonitor维护了一个映射，它存储了URL被轮询的状态，并每隔updatelnterval
+纳秒打印出其当前的状态。它向资源状态的接收者返回一个chan State。*/
+func StateMonitor(updatelnterval time.Duration) chan<- State {
+	updates := make(chan State)
+	urlStatus := make(map[string]string)
+	ticker := time.NewTicker(updatelnterval)
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				logState(urlStatus)
+			case s := <-updates:
+				urlStatus[s.url] = s.status
+			}
+		}
+	}()
+	return updates
+}
+
+//logState打印出一个状态映射。
+func logState(s map[string]string) {
+	log.Println("Current state.")
+	for k, v := range s {
+		log.Printf("%s %s", k, v)
+	}
+}
+
+// Resource表示一个被此程序轮询的HTTP URL.
+type Resource struct {
+	url      string
+	errCount int
+}
+
+//Poll为url执行一个HTTP HEAD请求，并返回HTTP的状态字符串或一个错误字符串。
+func (r *Resource) Poll() string {
+	resp, err := http.Head(r.url)
+	if err != nil {
+		log.Println("Error", r.url, err)
+		r.errCount++
+		return err.Error()
+	}
+	r.errCount = 0
+	return resp.Status
+}
+
+//Sleep在将Resource发送到done之前休眠一段适当的时间(取决于错误状态)
+func (r *Resource) Sleep(done chan<- *Resource) {
+	time.Sleep(polllnterval + errTimeout*time.Duration(r.errCount))
+	done <- r
+}
+
+func Poller(in <-chan *Resource, out chan<- *Resource, status chan<- State) {
+	for r := range in {
+		s := r.Poll()
+		status <- State{r.url, s}
+		out <- r
+	}
+}
+
+func main() {
+	//创建我们的输入和输出信道。
+	pending, complete := make(chan *Resource), make(chan *Resource)
+
+	//启动StateMonitor。
+	status := StateMonitor(statuslnterval)
+
+	//启动一些Poller Go程
+	for i := 0; i < numPollers; i++ {
+		go Poller(pending, complete, status)
+	}
+
+	//将一些Resource发送至pending序列。
+	go func() {
+		for _, url := range urls {
+			pending <- &Resource{url: url}
+		}
+	}()
+
+	for r := range complete {
+		go r.Sleep(pending)
+	}
 }
 ```
