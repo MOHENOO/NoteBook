@@ -73,6 +73,41 @@ pizza 和 pi 并未以大写字母开头，所以它们是未导出的。
 
 在导入一个包时，你只能引用其中已导出的名字。任何“未导出”的名字在该包外均无法访问。
 
+#### import
+
+import，其实是去`GOROOT`环境变量指定目录下去加载该模块，当然Go的import还支持如下两种方式来加载自己写的模块：
+
+1. 相对路径
+
+	import “./model” //当前文件同一目录的model目录，但是不建议这种方式来import
+
+2. 绝对路径
+
+	import “shorturl/model” //加载gopath/src/shorturl/model模块
+上面展示了一些import常用的几种方式，但是还有一些特殊的import，让很多新手很费解，下面我们来一一讲解一下到底是怎么一回事
+
+点操作，我们有时候会看到如下的方式导入包
+
+```go
+import(
+	. "fmt"
+)
+```
+
+>这个点操作的含义就是这个包导入之后在你调用这个包的函数时，你可以省略前缀的包名，也就是前面你调用的fmt.Println("hello world")可以省略的写成Println("hello world")
+
+_操作,这个操作经常是让很多人费解的一个操作符，请看下面这个import
+
+```Go
+
+	import (
+	    "database/sql"
+	    _ "github.com/ziutek/mymysql/godrv"
+	)
+```
+
+>_操作其实是引入该包，而不直接使用包里面的函数，而是调用了该包里面的init函数。
+
 #### 函数
 
 ```go
@@ -122,6 +157,18 @@ x int,y int
 ```go
 x,y int
 ```
+
+### `main`函数和`init`函数
+
+Go里面有两个保留的函数：`init`函数（能够应用于所有的`package`）和`main`函数（只能应用于`package main`）。这两个函数在定义时不能有任何的参数和返回值。虽然一个`package`里面可以写任意多个`init`函数，但这无论是对于可读性还是以后的可维护性来说，我们都强烈建议用户在一个`package`中每个文件只写一个`init`函数。
+
+Go程序会自动调用`init()`和`main()`，所以你不需要在任何地方调用这两个函数。每个`package`中的`init`函数都是可选的，但`package main`就必须包含一个`main`函数。
+
+程序的初始化和执行都起始于`main`包。如果`main`包还导入了其它的包，那么就会在编译时将它们依次导入。有时一个包会被多个包同时导入，那么它只会被导入一次（例如很多包可能都会用到`fmt`包，但它只会被导入一次，因为没有必要导入多次）。当一个包被导入时，如果该包还导入了其它的包，那么会先将其它包导入进来，然后再对这些包中的包级常量和变量进行初始化，接着执行`init`函数（如果有的话），依次类推。等所有被导入的包都加载完毕了，就会开始对`main`包中的包级常量和变量进行初始化，然后执行`main`包中的`init`函数（如果存在的话），最后执行`main`函数。下图详细地解释了整个执行过程：
+
+![init](2.3.init.png?raw=true)
+
+图2.6 main函数引入包初始化流程图
 
 #### 多值返回
 
@@ -305,6 +352,7 @@ func main() {
 ### iota枚举
 
 Go里面有一个关键字`iota`，这个关键字用来声明`enum`的时候采用，它默认开始值是0，const中每增加一行加1：
+
 ```Go
 
 package main
@@ -687,6 +735,22 @@ z -= (z*z - x) / (2*z)
 
 （*注：* 如果你对该算法的细节感兴趣，上面的 z² − x 是 z² 到它所要到达的值（即 x）的距离， 除以的 2z 为 z² 的导数，我们通过 z² 的变化速度来改变 z 的调整量。 这种通用方法叫做牛顿法。 它对很多函数，特别是平方根而言非常有效。）
 
+### goto
+
+Go有goto语句，请明智的使用它，用goto跳转到必须是在当前函数内定义的标签。
+
+```go
+func myFunc(){
+	i:=0
+Here:
+	println(i)
+	i++
+	goto Here
+}
+```
+
+>标签名是大小写敏感的。
+
 #### switch
 
 ```go
@@ -968,6 +1032,222 @@ func main() {
 使用 Name: 语法可以仅列出部分字段。（字段名的顺序无关。）
 
 特殊的前缀 & 返回一个指向结构体的指针。
+
+#### struct使用
+
+```Go
+
+type person struct {
+	name string
+	age int
+}
+
+var P person  
+//P现在就是person类型的变量了
+
+P.name = "Astaxie"  // 赋值"Astaxie"给P的name属性.
+P.age = 25  // 赋值"25"给变量P的age属性
+fmt.Printf("The person's name is %s", P.name)  // 访问P的name属性.
+```
+
+除了上面这种P的声明使用之外，还有另外几种声明使用方式：
+
+按照顺序提供初始化值
+
+>	P := person{"Tom", 25}
+
+通过`field:value`的方式初始化，这样可以任意顺序
+
+>	P := person{age:24, name:"Tom"}
+
+当然也可以通过`new`函数分配一个指针，此处P的类型为*person
+
+>	P := new(person)
+
+下面我们看一个完整的使用struct的例子
+
+```Go
+
+package main
+
+import "fmt"
+
+// 声明一个新的类型
+type person struct {
+	name string
+	age int
+}
+
+// 比较两个人的年龄，返回年龄大的那个人，并且返回年龄差
+// struct也是传值的
+func Older(p1, p2 person) (person, int) {
+	if p1.age>p2.age {  // 比较p1和p2这两个人的年龄
+		return p1, p1.age-p2.age
+	}
+	return p2, p2.age-p1.age
+}
+
+func main() {
+	var tom person
+
+	// 赋值初始化
+	tom.name, tom.age = "Tom", 18
+
+	// 两个字段都写清楚的初始化
+	bob := person{age:25, name:"Bob"}
+
+	// 按照struct定义顺序初始化值
+	paul := person{"Paul", 43}
+
+	tb_Older, tb_diff := Older(tom, bob)
+	tp_Older, tp_diff := Older(tom, paul)
+	bp_Older, bp_diff := Older(bob, paul)
+
+	fmt.Printf("Of %s and %s, %s is older by %d years\n",
+		tom.name, bob.name, tb_Older.name, tb_diff)
+
+	fmt.Printf("Of %s and %s, %s is older by %d years\n",
+		tom.name, paul.name, tp_Older.name, tp_diff)
+
+	fmt.Printf("Of %s and %s, %s is older by %d years\n",
+		bob.name, paul.name, bp_Older.name, bp_diff)
+}
+```
+
+#### struct的匿名字段
+
+我们上面介绍了如何定义一个struct，定义的时候是字段名与其类型一一对应，实际上Go支持只提供类型，而不写字段名的方式，也就是匿名字段，也称为嵌入字段。
+
+当匿名字段是一个struct的时候，那么这个struct所拥有的全部字段都被隐式地引入了当前定义的这个struct。
+
+让我们来看一个例子，让上面说的这些更具体化
+
+```Go
+
+package main
+
+import "fmt"
+
+type Human struct {
+	name string
+	age int
+	weight int
+}
+
+type Student struct {
+	Human  // 匿名字段，那么默认Student就包含了Human的所有字段
+	speciality string
+}
+
+func main() {
+	// 我们初始化一个学生
+	mark := Student{Human{"Mark", 25, 120}, "Computer Science"}
+
+	// 我们访问相应的字段
+	fmt.Println("His name is ", mark.name)
+	fmt.Println("His age is ", mark.age)
+	fmt.Println("His weight is ", mark.weight)
+	fmt.Println("His speciality is ", mark.speciality)
+	// 修改对应的备注信息
+	mark.speciality = "AI"
+	fmt.Println("Mark changed his speciality")
+	fmt.Println("His speciality is ", mark.speciality)
+	// 修改他的年龄信息
+	fmt.Println("Mark become old")
+	mark.age = 46
+	fmt.Println("His age is", mark.age)
+	// 修改他的体重信息
+	fmt.Println("Mark is not an athlet anymore")
+	mark.weight += 60
+	fmt.Println("His weight is", mark.weight)
+}
+```
+
+图例如下:
+
+![student_struct](2.4.student_struct.png?raw=true)
+
+图2.7 struct组合，Student组合了Human struct和string基本类型
+
+我们看到Student访问属性age和name的时候，就像访问自己所有用的字段一样，对，匿名字段就是这样，能够实现字段的继承。是不是很酷啊？还有比这个更酷的呢，那就是student还能访问Human这个字段作为字段名。请看下面的代码，是不是更酷了。
+```Go
+
+mark.Human = Human{"Marcus", 55, 220}
+mark.Human.age -= 1
+```
+通过匿名访问和修改字段相当的有用，但是不仅仅是struct字段哦，所有的内置类型和自定义类型都是可以作为匿名字段的。请看下面的例子
+```Go
+
+package main
+
+import "fmt"
+
+type Skills []string
+
+type Human struct {
+	name string
+	age int
+	weight int
+}
+
+type Student struct {
+	Human  // 匿名字段，struct
+	Skills // 匿名字段，自定义的类型string slice
+	int    // 内置类型作为匿名字段
+	speciality string
+}
+
+func main() {
+	// 初始化学生Jane
+	jane := Student{Human:Human{"Jane", 35, 100}, speciality:"Biology"}
+	// 现在我们来访问相应的字段
+	fmt.Println("Her name is ", jane.name)
+	fmt.Println("Her age is ", jane.age)
+	fmt.Println("Her weight is ", jane.weight)
+	fmt.Println("Her speciality is ", jane.speciality)
+	// 我们来修改他的skill技能字段
+	jane.Skills = []string{"anatomy"}
+	fmt.Println("Her skills are ", jane.Skills)
+	fmt.Println("She acquired two new ones ")
+	jane.Skills = append(jane.Skills, "physics", "golang")
+	fmt.Println("Her skills now are ", jane.Skills)
+	// 修改匿名内置类型字段
+	jane.int = 3
+	fmt.Println("Her preferred number is", jane.int)
+}
+```
+从上面例子我们看出来struct不仅仅能够将struct作为匿名字段，自定义类型、内置类型都可以作为匿名字段，而且可以在相应的字段上面进行函数操作（如例子中的append）。
+
+这里有一个问题：如果human里面有一个字段叫做phone，而student也有一个字段叫做phone，那么该怎么办呢？
+
+Go里面很简单的解决了这个问题，最外层的优先访问，也就是当你通过`student.phone`访问的时候，是访问student里面的字段，而不是human里面的字段。
+
+这样就允许我们去重载通过匿名字段继承的一些字段，当然如果我们想访问重载后对应匿名类型里面的字段，可以通过匿名字段名来访问。请看下面的例子
+```Go
+
+package main
+
+import "fmt"
+
+type Human struct {
+	name string
+	age int
+	phone string  // Human类型拥有的字段
+}
+
+type Employee struct {
+	Human  // 匿名字段Human
+	speciality string
+	phone string  // 雇员的phone字段
+}
+
+func main() {
+	Bob := Employee{Human{"Bob", 34, "777-444-XXXX"}, "Designer", "333-222"}
+	fmt.Println("Bob's work phone is:", Bob.phone)
+	// 如果我们要访问Human的phone字段
+	fmt.Println("Bob's personal phone is:", Bob.Human.phone)
+}
+```
 
 #### 数组
 
@@ -1439,6 +1719,7 @@ func main() {
 映射的零值为 nil 。nil 映射既没有键，也不能添加键。
 
 make 函数会返回给定类型的映射，并将其初始化备用。
+map和其他类型不同，它不是thread-safe，在多个go-routine存取时，必须使用mutex lock机制。
 
 #### 映射的文法
 
@@ -1663,6 +1944,24 @@ func main() {
 }
 ```
 
+### make、new操作
+
+`make`用于内建类型（`map`、`slice` 和`channel`）的内存分配。`new`用于各种类型的内存分配。
+
+内建函数`new`本质上说跟其它语言中的同名函数功能一样：`new(T)`分配了零值填充的`T`类型的内存空间，并且返回其地址，即一个`*T`类型的值。用Go的术语说，它返回了一个指针，指向新分配的类型`T`的零值。有一点非常重要：
+
+>`new`返回指针。
+
+内建函数`make(T, args)`与`new(T)`有着不同的功能，make只能创建`slice`、`map`和`channel`，并且返回一个有初始值(非零)的`T`类型，而不是`*T`。本质来讲，导致这三个类型有所不同的原因是指向数据结构的引用在使用前必须被初始化。例如，一个`slice`，是一个包含指向数据（内部`array`）的指针、长度和容量的三项描述符；在这些项目被初始化之前，`slice`为`nil`。对于`slice`、`map`和`channel`来说，`make`初始化了内部的数据结构，填充适当的值。
+
+>`make`返回初始化后的（非零）值。
+
+下面这个图详细的解释了`new`和`make`之间的区别。
+
+![makenew](2.2.makenew.png?raw=true)
+
+图2.5 make和new对应底层的内存分配
+
 ## 方法和接口
 
 ### 方法
@@ -1697,6 +1996,14 @@ Go 没有类。不过你可以为结构体类型定义方法。
 
 在此例中，Abs 方法拥有一个名为 v，类型为 Vertex 的接收者。
 
+`method`是附属在一个给定的类型上的，他的语法和函数的声明语法几乎一样，只是在`func`后面增加了一个receiver(也就是method所依从的主体)。
+
+在使用method的时候重要注意几点
+
+虽然method的名字一模一样，但是如果接收者不一样，那么method就不一样
+method里面可以访问接收者的字段
+调用method通过`.`访问，就像struct里面访问字段一样
+
 ### 方法即函数
 
 ```go
@@ -1724,6 +2031,96 @@ func main() {
 记住：方法只是个带接收者参数的函数。
 
 现在这个 Abs 的写法就是个正常的函数，功能并没有什么变化。
+
+### method继承
+
+前面一章我们学习了字段的继承，那么你也会发现Go的一个神奇之处，method也是可以继承的。如果匿名字段实现了一个method，那么包含这个匿名字段的struct也能调用该method。让我们来看下面这个例子
+
+```Go
+
+package main
+
+import "fmt"
+
+type Human struct {
+	name string
+	age int
+	phone string
+}
+
+type Student struct {
+	Human //匿名字段
+	school string
+}
+
+type Employee struct {
+	Human //匿名字段
+	company string
+}
+
+//在human上面定义了一个method
+func (h *Human) SayHi() {
+	fmt.Printf("Hi, I am %s you can call me on %s\n", h.name, h.phone)
+}
+
+func main() {
+	mark := Student{Human{"Mark", 25, "222-222-YYYY"}, "MIT"}
+	sam := Employee{Human{"Sam", 45, "111-888-XXXX"}, "Golang Inc"}
+
+	mark.SayHi()
+	sam.SayHi()
+}
+```
+
+### method重写
+
+上面的例子中，如果Employee想要实现自己的SayHi,怎么办？简单，和匿名字段冲突一样的道理，我们可以在Employee上面定义一个method，重写了匿名字段的方法。请看下面的例子
+
+```Go
+
+package main
+
+import "fmt"
+
+type Human struct {
+	name string
+	age int
+	phone string
+}
+
+type Student struct {
+	Human //匿名字段
+	school string
+}
+
+type Employee struct {
+	Human //匿名字段
+	company string
+}
+
+//Human定义method
+func (h *Human) SayHi() {
+	fmt.Printf("Hi, I am %s you can call me on %s\n", h.name, h.phone)
+}
+
+//Employee的method重写Human的method
+func (e *Employee) SayHi() {
+	fmt.Printf("Hi, I am %s, I work at %s. Call me on %s\n", e.name,
+		e.company, e.phone) //Yes you can split into 2 lines here.
+}
+
+func main() {
+	mark := Student{Human{"Mark", 25, "222-222-YYYY"}, "MIT"}
+	sam := Employee{Human{"Sam", 45, "111-888-XXXX"}, "Golang Inc"}
+
+	mark.SayHi()
+	sam.SayHi()
+}
+```
+
+上面的代码设计的是如此的美妙，让人不自觉的为Go的设计惊叹！
+
+通过这些内容，我们可以设计出基本的面向对象的程序了，但是Go里面的面向对象是如此的简单，没有任何的私有、公有关键字，通过大小写来实现(大写开头的为公有，小写开头的为私有)，方法也同样适用这个原则。
 
 ### 非结构体的方法
 
@@ -2228,6 +2625,205 @@ interface{}
 
 空接口被用来处理未知类型的值。例如，fmt.Print 可接受类型为 interface{} 的任意数量的参数。
 
+### interface函数参数
+
+interface的变量可以持有任意实现该interface类型的对象，这给我们编写函数(包括method)提供了一些额外的思考，我们是不是可以通过定义interface参数，让函数接受各种类型的参数。
+
+举个例子：fmt.Println是我们常用的一个函数，但是你是否注意到它可以接受任意类型的数据。打开fmt的源码文件，你会看到这样一个定义:
+
+```Go
+
+type Stringer interface {
+	 String() string
+}
+```
+
+也就是说，任何实现了String方法的类型都能作为参数被fmt.Println调用,让我们来试一试
+
+```Go
+
+package main
+import (
+	"fmt"
+	"strconv"
+)
+
+type Human struct {
+	name string
+	age int
+	phone string
+}
+
+// 通过这个方法 Human 实现了 fmt.Stringer
+func (h Human) String() string {
+	return "❰"+h.name+" - "+strconv.Itoa(h.age)+" years -  ✆ " +h.phone+"❱"
+}
+
+func main() {
+	Bob := Human{"Bob", 39, "000-7777-XXX"}
+	fmt.Println("This Human is : ", Bob)
+}
+```
+
+即如果需要某个类型能被fmt包以特殊的格式输出，你就必须实现Stringer这个接口。如果没有实现这个接口，fmt将以默认的方式输出。
+
+```Go
+
+//实现同样的功能
+fmt.Println("The biggest one is", boxes.BiggestsColor().String())
+fmt.Println("The biggest one is", boxes.BiggestsColor())
+```
+
+注：实现了error接口的对象（即实现了Error() string的对象），使用fmt输出时，会调用Error()方法，因此不必再定义String()方法了。
+
+### interface变量存储的类型
+
+我们知道interface的变量里面可以存储任意类型的数值(该类型实现了interface)。那么我们怎么反向知道这个变量里面实际保存了的是哪个类型的对象呢？目前常用的有两种方法：
+
+Comma-ok断言
+
+>	Go语言里面有一个语法，可以直接判断是否是该类型的变量： value, ok = element.(T)，这里value就是变量的值，ok是一个bool类型，element是interface变量，T是断言的类型。如果element里面确实存储了T类型的数值，那么ok返回true，否则返回false。
+
+让我们通过一个例子来更加深入的理解。
+
+```Go
+
+	package main
+
+	import (
+		"fmt"
+		"strconv"
+	)
+
+	type Element interface{}
+	type List [] Element
+
+	type Person struct {
+		name string
+		age int
+	}
+
+	//打印
+	func (p Person) String() string {
+		return "(name: " + p.name + " - age: "+strconv.Itoa(p.age)+ " years)"
+	}
+
+	func main() {
+		list := make(List, 3)
+		list[0] = 1 //an int
+		list[1] = "Hello" //a string
+		list[2] = Person{"Dennis", 70}
+
+		for index, element := range list{
+			switch value := element.(type) {
+				case int:
+					fmt.Printf("list[%d] is an int and its value is %d\n", index, value)
+				case string:
+					fmt.Printf("list[%d] is a string and its value is %s\n", index, value)
+				case Person:
+					fmt.Printf("list[%d] is a Person and its value is %s\n", index, value)
+				default:
+					fmt.Println("list[%d] is of a different type", index)
+			}
+		}
+	}
+```
+
+这里有一点需要强调的是：`element.(type)`语法不能在switch外的任何逻辑里面使用，如果你要在switch外面判断一个类型就使用`comma-ok`。
+
+### 嵌入interface
+
+Go里面真正吸引人的是它内置的逻辑语法，就像我们在学习Struct时学习的匿名字段，多么的优雅啊，那么相同的逻辑引入到interface里面，那不是更加完美了。如果一个interface1作为interface2的一个嵌入字段，那么interface2隐式的包含了interface1里面的method。
+
+我们可以看到源码包container/heap里面有这样的一个定义
+
+```Go
+
+type Interface interface {
+	sort.Interface //嵌入字段sort.Interface
+	Push(x interface{}) //a Push method to push elements into the heap
+	Pop() interface{} //a Pop elements that pops elements from the heap
+}
+```
+
+我们看到sort.Interface其实就是嵌入字段，把sort.Interface的所有method给隐式的包含进来了。也就是下面三个方法：
+
+```Go
+
+type Interface interface {
+	// Len is the number of elements in the collection.
+	Len() int
+	// Less returns whether the element with index i should sort
+	// before the element with index j.
+	Less(i, j int) bool
+	// Swap swaps the elements with indexes i and j.
+	Swap(i, j int)
+}
+```
+
+另一个例子就是io包下面的 io.ReadWriter ，它包含了io包下面的Reader和Writer两个interface：
+
+```Go
+
+// io.ReadWriter
+type ReadWriter interface {
+	Reader
+	Writer
+}
+```
+
+### 反射
+
+Go语言实现了反射，所谓反射就是能检查程序在运行时的状态。我们一般用到的包是reflect包。如何运用reflect包，官方的这篇文章详细的讲解了reflect包的实现原理，[laws of reflection](http://golang.org/doc/articles/laws_of_reflection.html)
+
+使用reflect一般分成三步，下面简要的讲解一下：要去反射是一个类型的值(这些值都实现了空interface)，首先需要把它转化成reflect对象(reflect.Type或者reflect.Value，根据不同的情况调用不同的函数)。这两种获取方式如下：
+
+```Go
+
+t := reflect.TypeOf(i)    //得到类型的元数据,通过t我们能获取类型定义里面的所有元素
+v := reflect.ValueOf(i)   //得到实际的值，通过v我们获取存储在里面的值，还可以去改变值
+```
+
+转化为reflect对象之后我们就可以进行一些操作了，也就是将reflect对象转化成相应的值，例如
+
+```Go
+
+tag := t.Elem().Field(0).Tag  //获取定义在struct里面的标签
+name := v.Elem().Field(0).String()  //获取存储在第一个字段里面的值
+```
+
+获取反射值能返回相应的类型和数值
+
+```Go
+
+var x float64 = 3.4
+v := reflect.ValueOf(x)
+fmt.Println("type:", v.Type())
+fmt.Println("kind is float64:", v.Kind() == reflect.Float64)
+fmt.Println("value:", v.Float())
+```
+
+最后，反射的话，那么反射的字段必须是可修改的，我们前面学习过传值和传引用，这个里面也是一样的道理。反射的字段必须是可读写的意思是，如果下面这样写，那么会发生错误
+
+```Go
+
+var x float64 = 3.4
+v := reflect.ValueOf(x)
+v.SetFloat(7.1)
+```
+
+如果要修改相应的值，必须这样写
+
+```Go
+
+var x float64 = 3.4
+p := reflect.ValueOf(&x)
+v := p.Elem()
+v.SetFloat(7.1)
+```
+
+上面只是对反射的简单介绍，更深入的理解还需要自己在编程中不断的实践。
+
 ### 类型断言
 
 ```go
@@ -2486,6 +3082,44 @@ func Sqrt(x float64) (float64, error) {
 func main() {
 	fmt.Println(Sqrt(2))
 	fmt.Println(Sqrt(-2))
+}
+```
+
+### Panic和Recover
+
+Go没有像Java那样的异常机制，它不能抛出异常，而是使用了`panic`和`recover`机制。一定要记住，你应当把它作为最后的手段来使用，也就是说，你的代码中应当没有，或者很少有`panic`的东西。这是个强大的工具，请明智地使用它。那么，我们应该如何使用它呢？
+
+Panic
+>是一个内建函数，可以中断原有的控制流程，进入一个`panic`状态中。当函数`F`调用`panic`，函数F的执行被中断，但是`F`中的延迟函数会正常执行，然后F返回到调用它的地方。在调用的地方，`F`的行为就像调用了`panic`。这一过程继续向上，直到发生`panic`的`goroutine`中所有调用的函数返回，此时程序退出。`panic`可以直接调用`panic`产生。也可以由运行时错误产生，例如访问越界的数组。
+
+Recover
+>是一个内建的函数，可以让进入`panic`状态的`goroutine`恢复过来。`recover`仅在延迟函数中有效。在正常的执行过程中，调用`recover`会返回`nil`，并且没有其它任何效果。如果当前的`goroutine`陷入`panic`状态，调用`recover`可以捕获到`panic`的输入值，并且恢复正常的执行。
+
+下面这个函数演示了如何在过程中使用`panic`
+
+```Go
+
+var user = os.Getenv("USER")
+
+func init() {
+	if user == "" {
+		panic("no value for $USER")
+	}
+}
+```
+
+下面这个函数检查作为其参数的函数在执行时是否会产生`panic`：
+
+```Go
+
+func throwsPanic(f func()) (b bool) {
+	defer func() {
+		if x := recover(); x != nil {
+			b = true
+		}
+	}()
+	f() //执行函数f，如果f中出现了panic，那么就可以恢复回来
+	return
 }
 ```
 
@@ -2953,25 +3587,25 @@ func main() {
 
 runtime包中有几个处理goroutine的函数：
 
-- Goexit
+Goexit
 
-	退出当前执行的goroutine，但是defer函数还会继续调用
+>退出当前执行的goroutine，但是defer函数还会继续调用
 
-- Gosched
+Gosched
 
-	让出当前goroutine的执行权限，调度器安排其他等待的任务运行，并在下次某个时候从该位置恢复执行。
+>让出当前goroutine的执行权限，调度器安排其他等待的任务运行，并在下次某个时候从该位置恢复执行。
 
-- NumCPU
+NumCPU
 
-	返回 CPU 核数量
-	
-- NumGoroutine
+>返回 CPU 核数量
 
-	返回正在执行和排队的任务总数
-	
-- GOMAXPROCS
+NumGoroutine
 
-	用来设置可以并行计算的CPU核数的最大值，并返回之前的值。
+>返回正在执行和排队的任务总数
+
+GOMAXPROCS
+
+>用来设置可以并行计算的CPU核数的最大值，并返回之前的值。
 
 ### 练习：等价二叉查找树
 
@@ -3188,6 +3822,9 @@ var fetcher = fakeFetcher{
 	},
 }
 ```
+
+## web基础
+
 
 ## 代码漫步
 
@@ -3427,3 +4064,54 @@ func main() {
 	}
 }
 ```
+
+## echo框架
+
+### Context
+
+echo.Context表示当前HTTP请求的上下文。它包含请求和响应引用，路径，路径参数，数据，注册处理程序和API以读取请求和写入响应。由于Context是一个接口，因此很容易使用自定义API扩展它。
+
+扩展上下文
+
+```go
+type CustomContext struct{
+	echo.Context
+}
+
+func (c *CustomContext) Foo(){
+	println("foo")
+}
+
+func (c *CustomContext) Bar(){
+	println("bar)
+}
+```
+
+创建中间件以扩展默认上下文
+
+```go
+e.Use(func(h echo.HandlerFunc) echo.HandlerFunc{
+	return func(c ehco.Context) error{
+		cc:=&CustomContext{c}
+		return h(cc)
+	}
+})
+```
+
+>此中间间以扩展默认上下文
+
+用于处理程序
+
+```go
+e.GET("/",func(c echo.Context)error{
+	cc:=c.(*CustomContext)
+	cc.Foo()
+	cc.Bar()
+	return cc.String(200,"OK")
+})
+```
+
+### Cookie
+
+Cookie是从网站发送的一小段数据，在用户浏览时存储在用户的网络浏览器中。每次用户加载网站时，浏览器都会将cookie发送回服务器以通知用户之前的活动。Cookie旨在成为网站记住有状态信息（例如在线商店中购物车中添加的项目）或记录用户浏览活动（包括点击特定按钮，登录或记录访问过哪些页面）的可靠机制在过去）。Cookie还可以存储用户先前输入的密码和表单内容，例如信用卡号或地址。
+
