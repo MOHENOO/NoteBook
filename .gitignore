@@ -2,3 +2,5 @@ test.py
 /.vscode
 test.go
 Python/利用python进行数据分析/利用python进行数据分析-numpy.py
+some_array.npy
+array_archive.npz
