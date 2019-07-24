@@ -11,9 +11,13 @@ Server = https://mirrors.ustc.edu.cn/archlinuxcn/$arch
 
 > sudo pacman -Syy
 
-## Bumblebeed
+> sudo pacman -S yay
 
-### 更改boot启动参数
+yay,新的aur安装管理器.
+
+## Nvidia
+
+### 更改boot启动参数(Nvidia)
 
 - vim /etc/default/grub
 
@@ -41,7 +45,7 @@ sudo systemctl enable bumblebeed
 - 添加用户
 sudo gpasswd -a $USER bumblebee
 
-### 测试
+#### 测试
 
 - 打开nvida面板
 optirun -b none nvidia-settings -c :8
@@ -55,9 +59,17 @@ sudo rmmod nvidia_uvm nvidia && sudo tee /proc/acpi/bbswitch <<< OFF
 inxi -G # 查看显卡情况
 optirun nvidia-smi # 查看CPU情况
 
-## CUDA安装
+#### Dota2
 
-### 安装CUDA
+启动项添加 vblank_mode=0 primusrun %command%  -perfectworld -safe_mode
+
+vblank_mode=0 primusrun %command% 关闭垂直同步，使用primusrun启动
+
+-safe_mode 使用默认图形依赖(opengl)
+
+#### CUDA安装
+
+##### 安装CUDA
 
 > sudo pacman -S cuda cudnn
 
@@ -65,7 +77,7 @@ optirun nvidia-smi # 查看CPU情况
 
 > sudo ln -s /opt/cuda/bin /usr/local/cuda/bin
 
-### 验证安装
+##### 验证安装
 
 完成之后，我们进入cuda的安装路径，我的路径是/opt/cuda，你可以使用下面的命令将CUDA的示例程序拷贝到你的用户主目录下，之后编译程序
 
@@ -79,15 +91,14 @@ cd ~/samples/bin/x86_64/linux/release
 ./deviceQuery
 在窗口中查看最后一行的结果是否为pass，如果是则表示CUDA安装成功。
 
-## Steam
 
-### Dota2
+### optimus-manager
 
-启动项添加 vblank_mode=0 primusrun %command%  -perfectworld -safe_mode
+```shell
+yay optimus-manager
+systemctl enable optimus-manager.service
 
-vblank_mode=0 primusrun %command% 关闭垂直同步，使用primusrun启动
-
--safe_mode 使用默认图形依赖(opengl)
+```
 
 ## Lutris
 
@@ -105,6 +116,14 @@ export GTK_IM_MODULE=fcitx
 export QT_IM_MODELE=fcitx
 export XMODIFIERS="@im=fcitx"
 
+```shell
+git clone https://github.com/mohenoo/Config.git
+
+ln -s ~/Github/Config/Linux/rime ~/.config/fcitx/rime
+```
+
+or
+
 > vim .config/fcitx/rime/default.custom.yaml
 
 patch:
@@ -114,3 +133,21 @@ patch:
     - schema: luna_pinyin_tw       # 朙月拼音 臺灣正體模式
     - schema: double_pinyin_flypy  # 小鶴雙拼
     - schema: emoji                # emoji 表情
+
+## Bluetooth Headset
+
+```shell
+yay pulseaudio-modules
+yay libldac
+# 提供ldac和aptx支持
+pulseaudio -k
+pulseaudio --start
+# 重启pulseaudio
+yay fix-bt-a2dp
+# 提供蓝牙a2dp修复
+bluetoothctl devices
+# => Device 10:4F:A8:CE:DB:D2 MDR-1ABT
+fix-bt-a2dp set-device-profile MDR-100ABN a2dp_sink_ldac
+# currently known profiles are
+#   a2dp_sink_sbc a2dp_sink_aac a2dp_sink_aptx a2dp_sink_aptx_hd a2dp_sink_ldac
+```
