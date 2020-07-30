@@ -4,7 +4,7 @@
 
 ### 魔术方法(magic method)
 
-- **len**,**getitem**(可迭代)
+- **len**,**getitem**(可迭代,使类支持[]常见操作)
 
 ```python
 import collections
@@ -42,6 +42,7 @@ class Vector:
     def __repr__(self):
         return 'Vector({},{})'.format(self.x, self.y)
 
+    # 内置函数abs()的实际调用,返回对象的绝对值
     def __abs__(self):
         return hypot(self.x, self.y)
 
