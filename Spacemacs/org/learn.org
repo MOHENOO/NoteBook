@@ -1,0 +1,23 @@
+* tips
+  
+org-store-link(SPC a o l)
+org-capture(SPC a o c)
+org-agenda(SPC a o o)
+
+** Headlines
+
+Use tab S-tab to cycling.
+
+#+begin_src org
+* Top level headline
+** Second level
+*** Third level
+#+end_src
+
+** Visibility Cycling
+
+TAB(org-cycle)
+S-TAB(org-global-cycle)
+,,(org-ctrl-c-ctrl-c)
+
+[[https://github.com/Somelauw/evil-org-mode/blob/master/README.org][evil-org-mode's README]]
