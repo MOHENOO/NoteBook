@@ -3,7 +3,14 @@
 org-store-link(SPC a o l)
 org-capture(SPC a o c)
 org-agenda(SPC a o o)
+,,(org-ctrl-c-ctrl-c)
+,id(org-insert-drawer) 
+,ib(org-insert-structure-template) Block
+TAB(org-cycle)
+S-TAB(org-global-cycle)
 
+* Document Structure
+  
 ** Headlines
 
 Use tab S-tab to cycling.
@@ -18,6 +25,73 @@ Use tab S-tab to cycling.
 
 TAB(org-cycle)
 S-TAB(org-global-cycle)
-,,(org-ctrl-c-ctrl-c)
 
-[[https://github.com/Somelauw/evil-org-mode/blob/master/README.org][evil-org-mode's README]]
+
+** Plain Lists
+
+#+begin_src org
+My favorite scenes are (in this order)
+1. The attack of the Rohirrim
+2. Eowyn's fight with the witch king
+   + this was already my favorite scene in the book
+   + I really like Miranda Otto.
+3. Peter Jackson being shot by Legolas
+   - on DVD only
+   He makes a really funny face when it happens.
+But in the end, no individual scenes matter but the film as a whole.
+Important actors in this film are:
+- Elijah Wood :: He plays Frodo
+- Sean Astin :: He plays Sam, Frodo's friend.  I still remember him
+     very well from his role as Mikey Walsh in /The Goonies/.
+#+end_src
+
+** Drawers
+:DRAWERNAME:
+Sometimes you want to keep information associated with an entry, but you normally do not want to see it.
+:END:
+
+
+Sometimes you want to keep information associated with an entry, but you normally do not want to see it.
+
+,id(org-insert-drawer) 
+
+** Blocks
+   
+Org mode uses ‘#+BEGIN’ … ‘#+END’ blocks for various purposes from including source code examples.
+
+,ib(org-insert-structure-template) Block
+
+* Tables
+
+,tn(org-table-create)
+
+TAB (org-table-next-field)
+
+S-TAB (org-table-previous-field)
+
+RET (org-table-next-row)
+
+,ta(org-table-align)
+
+** The Orgtbl Minor Mode
+   
+If you like the intuitive way the Org table editor works,
+you might also want to use it in other modes like Text mode or Mail mode.
+The minor mode Orgtbl mode makes this possible.
+You can always toggle the mode with M-x orgtbl-mode.
+To turn it on by default, 
+
+
+** Org Plot
+
+if use it, need gnuplot.
+
+
+#+PLOT: title:"Citas" ind:1 deps:(3) type:2d with:histograms set:"yrange [0:]"
+| Sede      | Max cites | H-index |
+|-----------+-----------+---------|
+| Chile     |    257.72 |   21.39 |
+| Leeds     |    165.77 |   19.68 |
+| Sao Paolo |     71.00 |   11.50 |
+| Stockholm |    134.19 |   14.33 |
+| Morelia   |    257.56 |   17.67 |
