@@ -1,13 +1,16 @@
 * tips
+| functions                     | key       | link               | remark |
+|-------------------------------+-----------+--------------------+--------|
+| org-capture                   | SPC-a-o-c |                    |        |
+| org-agenda                    | SPC-a-o-o |                    |        |
+| org-ctrl-c-ctrl-c             | ,,        |                    |        |
+| org-cycle                     | TAB       | [[*Visibility Cycling][Visibility Cycling]] |        |
+| org-global-cycle              | S-TAB     | [[*Visibility Cycling][Visibility Cycling]] |        |
+| org-insert-drawer             | ,id       | [[*Drawers][Drawers]]            |        |
+| org-insert-structure-template | ,ib       | [[*Blocks][Blocks]]             |        |
+| org-store-link                | SPC-a-o-l | [[*External Links][External Links]]     |        |
+| org-insert-link               | ,il       | [[*Internal Links][Internal Links]]     |        |
   
-org-store-link(SPC a o l)
-org-capture(SPC a o c)
-org-agenda(SPC a o o)
-,,(org-ctrl-c-ctrl-c)
-,id(org-insert-drawer) 
-,ib(org-insert-structure-template) Block
-TAB(org-cycle)
-S-TAB(org-global-cycle)
 
 * Document Structure
   
@@ -95,3 +98,60 @@ if use it, need gnuplot.
 | Sao Paolo |     71.00 |   11.50 |
 | Stockholm |    134.19 |   14.33 |
 | Morelia   |    257.56 |   17.67 |
+
+* Hyperlinks
+
+** Link Format
+
+#+begin_src shell
+[[LINK][DESCRIPTION]]
+[[LINK]]
+#+end_src
+
+** Internal Links
+
+#+NAME: My Target
+| a  | table      |
+|----+------------|
+| of | four cells |
+
+[[My Target]]
+
+,il(org-insert-link)
+
+** External Links
+
+SPC-a-o-l(org-store-link)   
+
+** Search Options in File Links
+
+#+begin_src shell
+[[file:~/code/main.c::255]]
+[[file:~/xx.org::My Target]]
+[[file:~/xx.org::*My Target]]
+[[file:~/xx.org::#my-custom-id]]
+[[file:~/xx.org::/regexp/]]
+[[attachment:main.c::255]]
+#+end_src
+
+- ‘255’
+Jump to line 255.
+
+- ‘My Target’
+Search for a link target ‘<<My Target>>’,
+or do a text search for ‘my target’,
+similar to the search in internal links,
+see Internal Links. In HTML export (see HTML Export),
+such a file link becomes a HTML reference to the corresponding named anchor in the linked file.
+
+- ‘*My Target’
+In an Org file, restrict search to headlines.
+
+‘#my-custom-id’
+Link to a heading with a ‘CUSTOM_ID’ property
+
+‘/REGEXP/’
+Do a regular expression search for REGEXP.
+This uses the Emacs command occur to list all matches in a separate window.
+If the target file is in Org mode,
+org-occur is used to create a sparse tree with the matches.
