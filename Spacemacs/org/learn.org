@@ -1,15 +1,18 @@
 * tips
-| functions                     | key       | link               | remark |
-|-------------------------------+-----------+--------------------+--------|
-| org-capture                   | SPC-a-o-c |                    |        |
-| org-agenda                    | SPC-a-o-o |                    |        |
-| org-ctrl-c-ctrl-c             | ,,        |                    |        |
+| functions                     | key       | link                                        | remark |
+|-------------------------------+-----------+---------------------------------------------+--------|
+| org-capture                   | SPC-a-o-c |                                             |        |
+| org-agenda                    | SPC-a-o-o |                                             |        |
+| org-ctrl-c-ctrl-c             | ,,        |                                             |        |
 | org-cycle                     | TAB       | [[*Visibility Cycling][Visibility Cycling]] |        |
 | org-global-cycle              | S-TAB     | [[*Visibility Cycling][Visibility Cycling]] |        |
-| org-insert-drawer             | ,id       | [[*Drawers][Drawers]]            |        |
-| org-insert-structure-template | ,ib       | [[*Blocks][Blocks]]             |        |
-| org-store-link                | SPC-a-o-l | [[*External Links][External Links]]     |        |
-| org-insert-link               | ,il       | [[*Internal Links][Internal Links]]     |        |
+| org-insert-drawer             | ,id       | [[*Drawers][Drawers]]                       |        |
+| org-insert-structure-template | ,ib       | [[*Blocks][Blocks]]                         |        |
+| org-store-link                | SPC-a-o-l | [[*External Links][External Links]]         |        |
+| org-insert-link               | ,il       | [[*Internal Links][Internal Links]]         |        |
+| org-todo                      | ,TT       | [[*\TODO Basics][TODO Basics]]              |        |
+| org-show-todo-tree            | ,Tt       | [[*\TODO Basics][TODO Basics]]              |        |
+| org-todo-list                 | SPC-a-o-t | [[*\TODO Basics][TODO Basics]]              |        |
   
 
 * Document Structure
@@ -155,3 +158,49 @@ Do a regular expression search for REGEXP.
 This uses the Emacs command occur to list all matches in a separate window.
 If the target file is in Org mode,
 org-occur is used to create a sparse tree with the matches.
+
+* \TODO Items
+
+** \TODO Basics
+
+,TT(org-todo)
+,Tt(org-show-todo-tree)
+SPC-a-o-t(org-todo-list)
+
+#+begin_src shell
+*** \TODO Write letter to Sam
+#+end_src
+
+** Extended Use of TODO Keywords
+
+
+Org mode allows you to classify TODO items in more complex ways with TODO keywords (stored in org-todo-keywords).
+
+For example:
+#+begin_src elisp
+(setq org-todo-keywords
+      '((sequence "TODO(t)" "WAIT(w@/!)" "|" "DONE(d!)" "CANCELED(c@)")
+        (sequence "REPORT(r!)" "BUG(b@/!)" "KNOWNCAUSE(k!)" "|" "FIXED(f@)")))
+#+end_src
+
+*** Setting up keywords for individual files
+
+For file-local settings, you need to add special lines to the file which set the keywords and interpretation for that file only.
+For example:
+#+begin_src org
+#+TODO: TODO | DONE
+#+TODO: REPORT BUG KNOWNCAUSE | FIXED
+#+TODO: | CANCELED
+#+end_src
+
+*** Faces for TODO keywords
+
+. If you are using more than two different states,
+you might want to use special faces for some of them.
+This can be done using the variable org-todo-keyword-faces.
+For example:
+#+begin_src org
+(setq org-todo-keyword-faces
+      '(("TODO" . org-warning) ("STARTED" . "yellow")
+        ("CANCELED" . (:foreground "blue" :weight bold))))    
+#+end_src
