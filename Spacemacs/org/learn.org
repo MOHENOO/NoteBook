@@ -13,6 +13,7 @@
 | org-todo                      | ,TT       | [[*\TODO Basics][TODO Basics]]        |        |
 | org-show-todo-tree            | ,Tt       | [[*\TODO Basics][TODO Basics]]        |        |
 | org-todo-list                 | SPC-a-o-t | [[*\TODO Basics][TODO Basics]]        |        |
+| org-priority                  | ,p        | [[*Priorities][Priorities]]         |        |
   
 
 * Document Structure
@@ -239,3 +240,66 @@ For example:
 :END:
 #+end_src
 
+** Priorities
+
+By default, Org mode supports three priorities: ‘A’, ‘B’, and ‘C’.
+‘A’ is the highest priority.
+An entry without a cookie is treated as equivalent if it had priority ‘B’.
+Priorities make a difference only for sorting in the agenda (see Weekly/daily agenda).
+Outside the agenda, they have no inherent meaning to Org mode. 
+   
+,p(org-priority)
+
+#+begin_src shell
+*** \TODO [#A] Write letter to Sam
+#+end_src
+
+** Breaking Down Tasks into Subtasks
+
+It is often advisable to break down large tasks into smaller,
+manageable subtasks. You can do this by creating an outline tree below a TODO item,
+with detailed subtasks on the tree
+To keep an overview of the fraction of subtasks that have already been marked as done,
+insert either ‘[/]’ or ‘[%]’ anywhere in the headline
+
+#+begin_src shell
+* Organize Party [0%]
+** \DONE Call people [1/2]
+   CLOSED: [2021-01-28 Thu 11:14]
+   - State "DONE"       from "TODO"       [2021-01-28 Thu 11:14]
+*** \TODO Peter
+    - State "DONE"       from "TODO"       [2021-01-28 Thu 11:13]
+*** \DONE Sarah
+** \DONE Buy food
+   CLOSED: [2021-01-28 Thu 11:14]
+   - State "DONE"       from "TODO"       [2021-01-28 Thu 11:14]
+** \DONE Talk to neighbor
+#+end_src
+
+If a heading has both checkboxes and TODO children below it,
+the meaning of the statistics cookie become ambiguous.
+Set the property ‘COOKIE_DATA’ to either ‘checkbox’ or ‘todo’ to resolve this issue.
+If you would like to have the statistics cookie count any TODO entries in the subtree (not just direct children),
+configure the variable org-hierarchical-todo-statistics.
+To do this for a single subtree,
+include the word ‘recursive’ into the value of the ‘COOKIE_DATA’ property.
+#+begin_src shell
+* Parent capturing statistics [2/20]
+  :PROPERTIES:
+  :COOKIE_DATA: todo recursive
+  :END:
+#+end_src
+
+** Checkboxes
+
+
+#+begin_src shell
+* \TODO Organize party [3/4]
+  - [-] call people [2/3]
+    - [X] Peter
+    - [X] Sarah
+    - [ ] Sam
+  - [X] order food
+  - [X] think about what music to play
+  - [X] talk to the neighbors
+#+end_src
