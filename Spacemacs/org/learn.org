@@ -14,6 +14,7 @@
 | org-show-todo-tree            | ,Tt       | [[*\TODO Basics][TODO Basics]]        |        |
 | org-todo-list                 | SPC-a-o-t | [[*\TODO Basics][TODO Basics]]        |        |
 | org-priority                  | ,p        | [[*Priorities][Priorities]]         |        |
+| org-tags-view                 | SPC-a-o-m | [[*Tag Searches][Tag Searches]]       |        |
   
 
 * Document Structure
@@ -303,3 +304,61 @@ include the word ‘recursive’ into the value of the ‘COOKIE_DATA’ propert
   - [X] think about what music to play
   - [X] talk to the neighbors
 #+end_src
+
+* Tags
+
+** Tag Inheritance
+
+Tags make use of the hierarchical structure of outline trees.
+If a heading has a certain tag, all subheadings inherit the tag as well.
+For example, in the list
+
+#+begin_src shell
+* Meeting with the French group      :work:
+** Summary by Frank                  :boss:notes:
+*** \TODO Prepare slides for him                                     :action:
+#+end_src
+the final heading has the tags ‘work’, ‘boss’, ‘notes’,
+and ‘action’ even though the final heading is not explicitly marked with those tags. 
+
+** Setting Tags
+    
+,it(org-set-tags-command)
+
+To set these mutually exclusive groups in the variable org-tags-alist,
+you must use the dummy tags :startgroup and :endgroup instead of the braces.
+Similarly, you can use :newline to indicate a line break.
+The previous example would be set globally by the following configuration:
+#+begin_src emacs-lisp
+(setq org-tag-alist '((:startgroup . nil)
+                      ("@work" . ?w) ("@home" . ?h)
+                      ("@tennisclub" . ?t)
+                      (:endgroup . nil)
+                      ("laptop" . ?l) ("pc" . ?p)))
+
+#+end_src
+
+** Tag Hierarchy
+
+Tags can be defined in hierarchies.
+A tag can be defined as a group tag for a set of other tags.
+The group tag can be seen as the “broader term” for its set of tags.
+Defining multiple group tags and nesting them creates a tag hierarchy.
+#+begin_src emacs-lisp 
+(setq org-tag-alist '((:startgrouptag)
+                      ("GTD")
+                      (:grouptags)
+                      ("Control")
+                      ("Persp")
+                      (:endgrouptag)
+                      (:startgrouptag)
+                      ("Control")
+                      (:grouptags)
+                      ("Context")
+                      ("Task")
+                      (:endgrouptag)))
+#+end_src
+
+** Tag Searches
+
+SPC-a-o-m(org-tags-view)
