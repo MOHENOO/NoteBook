@@ -1,20 +1,21 @@
 * tips
-| functions                     | key       | link               | remark |
-|-------------------------------+-----------+--------------------+--------|
-| org-capture                   | SPC-a-o-c |                    |        |
-| org-agenda                    | SPC-a-o-o |                    |        |
-| org-ctrl-c-ctrl-c             | ,,        |                    |        |
-| org-cycle                     | TAB       | [[*Visibility Cycling][Visibility Cycling]] |        |
-| org-global-cycle              | S-TAB     | [[*Visibility Cycling][Visibility Cycling]] |        |
-| org-insert-drawer             | ,id       | [[*Drawers][Drawers]]            |        |
-| org-insert-structure-template | ,ib       | [[*Blocks][Blocks]]             |        |
-| org-store-link                | SPC-a-o-l | [[*External Links][External Links]]     |        |
-| org-insert-link               | ,il       | [[*Internal Links][Internal Links]]     |        |
-| org-todo                      | ,TT       | [[*\TODO Basics][TODO Basics]]        |        |
-| org-show-todo-tree            | ,Tt       | [[*\TODO Basics][TODO Basics]]        |        |
-| org-todo-list                 | SPC-a-o-t | [[*\TODO Basics][TODO Basics]]        |        |
-| org-priority                  | ,p        | [[*Priorities][Priorities]]         |        |
-| org-tags-view                 | SPC-a-o-m | [[*Tag Searches][Tag Searches]]       |        |
+| functions                     | key       | link                            | remark |
+|-------------------------------+-----------+---------------------------------+--------|
+| org-capture                   | SPC-a-o-c |                                 |        |
+| org-agenda                    | SPC-a-o-o |                                 |        |
+| org-ctrl-c-ctrl-c             | ,,        |                                 |        |
+| org-cycle                     | TAB       | [[*Visibility Cycling][Visibility Cycling]]              |        |
+| org-global-cycle              | S-TAB     | [[*Visibility Cycling][Visibility Cycling]]              |        |
+| org-insert-drawer             | ,id       | [[*Drawers][Drawers]]                         |        |
+| org-insert-structure-template | ,ib       | [[*Blocks][Blocks]]                          |        |
+| org-store-link                | SPC-a-o-l | [[*External Links][External Links]]                  |        |
+| org-insert-link               | ,il       | [[*Internal Links][Internal Links]]                  |        |
+| org-todo                      | ,TT       | [[*\TODO Basics][TODO Basics]]                     |        |
+| org-show-todo-tree            | ,Tt       | [[*\TODO Basics][TODO Basics]]                     |        |
+| org-todo-list                 | SPC-a-o-t | [[*\TODO Basics][TODO Basics]]                     |        |
+| org-priority                  | ,p        | [[*Priorities][Priorities]]                      |        |
+| org-tags-view                 | SPC-a-o-m | [[*Tag Searches][Tag Searches]] [[*Property Searches][Property Searches]]  |        |
+| org-set-property              | ,ip       | [[*Property Syntax][Property Syntax]]                 |        |
   
 
 * Document Structure
@@ -362,3 +363,83 @@ Defining multiple group tags and nesting them creates a tag hierarchy.
 ** Tag Searches
 
 SPC-a-o-m(org-tags-view)
+
+* Properties and Columns
+
+** Property Syntax
+
+,ip(org-set-property)
+
+#+begin_src shell
+* CD collection
+** Classic
+*** Goldberg Variations
+    :PROPERTIES:
+    :Title:     Goldberg Variations
+    :Composer:  J.S. Bach
+    :Artist:    Glenn Gould
+    :Publisher: Deutsche Grammophon
+    :NDisks:    1
+    :END:
+#+end_src
+
+You may define the allowed values for a particular property ‘Xyz’ by setting a property ‘Xyz_ALL’.
+This special property is inherited,
+so if you set it in a level 1 entry,
+it applies to the entire tree.
+When allowed values are defined,
+setting the corresponding property becomes easier and is less prone to typing errors.
+For the example with the CD collection, we can pre-define publishers and the number of disks in a box like this:
+
+#+begin_src shell
+* CD collection
+  :PROPERTIES:
+  :NDisks_ALL:  1 2 3 4
+  :Publisher_ALL: "Deutsche Grammophon" Philips EMI
+  :END:
+#+end_src
+
+** Special Properties
+
+‘ALLTAGS’	All tags, including inherited ones.
+‘BLOCKED’	t if task is currently blocked by children or siblings.
+‘CATEGORY’	The category of an entry.
+‘CLOCKSUM’	The sum of CLOCK intervals in the subtree. org-clock-sum
+must be run first to compute the values in the current buffer.
+‘CLOCKSUM_T’	The sum of CLOCK intervals in the subtree for today.
+org-clock-sum-today must be run first to compute the
+values in the current buffer.
+‘CLOSED’	When was this entry closed?
+‘DEADLINE’	The deadline timestamp.
+‘FILE’	The filename the entry is located in.
+‘ITEM’	The headline of the entry.
+‘PRIORITY’	The priority of the entry, a string with a single letter.
+‘SCHEDULED’	The scheduling timestamp.
+‘TAGS’	The tags defined directly in the headline.
+‘TIMESTAMP’	The first keyword-less timestamp in the entry.
+‘TIMESTAMP_IA’	The first inactive timestamp in the entry.
+‘TODO’	The TODO keyword of the entry.
+
+** Property Searches
+
+SPC-a-o-m(org-tags-view)
+
+** Property Inheritance
+
+The outline structure of Org documents lends itself to an inheritance model of properties:
+if the parent in a tree has a certain property,
+the children can inherit this property.
+Org mode does not turn this on by default,
+because it can slow down property searches significantly and is often not needed.
+However, if you find inheritance useful,
+you can turn it on by setting the variable org-use-property-inheritance.
+It may be set to t to make all properties inherited from the parent,
+to a list of properties that should be inherited,
+or to a regular expression that matches inherited properties.
+If a property has the value nil,
+this is interpreted as an explicit un-define of the property,
+so that inheritance search stops at this value and returns nil.
+
+** Column View
+
+wait completed.
