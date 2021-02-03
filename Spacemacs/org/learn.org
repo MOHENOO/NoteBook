@@ -1,36 +1,43 @@
 * tips
-| functions                       | key         | link                           | remark |
-|---------------------------------+-------------+--------------------------------+--------|
-| org-capture                     | SPC-a-o-c   |                                |        |
-| org-agenda                      | SPC-a-o-o   |                                |        |
-| org-ctrl-c-ctrl-c               | ,,          |                                |        |
-| org-cycle                       | TAB         | [[*Visibility Cycling][Visibility Cycling]]             |        |
-| org-global-cycle                | S-TAB       | [[*Visibility Cycling][Visibility Cycling]]             |        |
-| org-insert-drawer               | ,id         | [[*Drawers][Drawers]]                        |        |
-| org-insert-structure-template   | ,ib         | [[*Blocks][Blocks]]                         |        |
-| org-store-link                  | SPC-a-o-l   | [[*External Links][External Links]]                 |        |
-| org-insert-link                 | ,il         | [[*Internal Links][Internal Links]]                 |        |
-| org-todo                        | ,TT         | [[*\TODO Basics][TODO Basics]]                    |        |
-| org-show-todo-tree              | ,Tt         | [[*\TODO Basics][TODO Basics]]                    |        |
-| org-todo-list                   | SPC-a-o-t   | [[*\TODO Basics][TODO Basics]]                    |        |
-| org-priority                    | ,p          | [[*Priorities][Priorities]]                     |        |
-| org-tags-view                   | SPC-a-o-m   | [[*Tag Searches][Tag Searches]] [[*Property Searches][Property Searches]] |        |
-| org-set-property                | ,ip         | [[*Property Syntax][Property Syntax]]                |        |
-| org-timestamp-down-day          | S-LEFT      | [[*Createing Timestamps][Createing Timestamps]]           |        |
-| org-timestamp-up-day            | S-RIGHT     | [[*Createing Timestamps][Createing Timestamps]]           |        |
-| org-timestamp-up                | S-UP        | [[*Createing Timestamps][Createing Timestamps]]           |        |
-| org-timestamp-down              | S-DOWN      | [[*Createing Timestamps][Createing Timestamps]]           |        |
-| org-open-at-point               | ,xo         | [[*Createing Timestamps][Createing Timestamps]]           |        |
-| org-time-stamp                  | ,dt         | [[*Createing Timestamps][Createing Timestamps]]           |        |
-| org-time-stamp-inactive         | ,dT         | [[*Createing Timestamps][Createing Timestamps]]           |        |
-| org-clock-in                    | SPC-a-o-C-i | [[*Clocking Work Time][Clocking Work Time]]             |        |
-| org-clock-cancel                | SPC-a-o-C-c | [[*Clocking Work Time][Clocking Work Time]]             |        |
-| org-clock-goto                  | SPC-a-o-C-g | [[*Clocking Work Time][Clocking Work Time]]             |        |
-| org-clock-jump-to-current-clock | SPC-a-o-C-j | [[*Clocking Work Time][Clocking Work Time]]             |        |
-| org-clock-out                   | SPC-a-o-C-o | [[*Clocking Work Time][Clocking Work Time]]             |        |
-| org-clock-in-last               | SPC-a-o-C-I | [[*Clocking Work Time][Clocking Work Time]]             |        |
-| org-resolve-clocks              | SPC-a-o-C-r | [[*Clocking Work Time][Clocking Work Time]]             |        |
-
+| functions                       | key               | link                           | remark |
+|---------------------------------+-------------------+--------------------------------+--------|
+| org-agenda                      | SPC-a-o-o         |                                |        |
+| org-ctrl-c-ctrl-c               | ,,                |                                |        |
+| org-cycle                       | TAB               | [[*Visibility Cycling][Visibility Cycling]]             |        |
+| org-global-cycle                | S-TAB             | [[*Visibility Cycling][Visibility Cycling]]             |        |
+| org-insert-drawer               | ,id               | [[*Drawers][Drawers]]                        |        |
+| org-insert-structure-template   | ,ib               | [[*Blocks][Blocks]]                         |        |
+| org-store-link                  | SPC-a-o-l         | [[*External Links][External Links]]                 |        |
+| org-insert-link                 | ,il               | [[*Internal Links][Internal Links]]                 |        |
+| org-todo                        | ,TT               | [[*\TODO Basics][TODO Basics]]                    |        |
+| org-show-todo-tree              | ,Tt               | [[*\TODO Basics][TODO Basics]]                    |        |
+| org-todo-list                   | SPC-a-o-t         | [[*\TODO Basics][TODO Basics]]                    |        |
+| org-priority                    | ,p                | [[*Priorities][Priorities]]                     |        |
+| org-tags-view                   | SPC-a-o-m         | [[*Tag Searches][Tag Searches]] [[*Property Searches][Property Searches]] |        |
+| org-set-property                | ,ip               | [[*Property Syntax][Property Syntax]]                |        |
+| org-timestamp-down-day          | S-LEFT            | [[*Createing Timestamps][Createing Timestamps]]           |        |
+| org-timestamp-up-day            | S-RIGHT           | [[*Createing Timestamps][Createing Timestamps]]           |        |
+| org-timestamp-up                | S-UP              | [[*Createing Timestamps][Createing Timestamps]]           |        |
+| org-timestamp-down              | S-DOWN            | [[*Createing Timestamps][Createing Timestamps]]           |        |
+| org-open-at-point               | ,xo               | [[*Createing Timestamps][Createing Timestamps]]           |        |
+| org-time-stamp                  | ,dt               | [[*Createing Timestamps][Createing Timestamps]]           |        |
+| org-time-stamp-inactive         | ,dT               | [[*Createing Timestamps][Createing Timestamps]]           |        |
+| org-clock-in                    | SPC-a-o-C-i       | [[*Clocking Work Time][Clocking Work Time]]             |        |
+| org-clock-cancel                | SPC-a-o-C-c       | [[*Clocking Work Time][Clocking Work Time]]             |        |
+| org-clock-goto                  | SPC-a-o-C-g       | [[*Clocking Work Time][Clocking Work Time]]             |        |
+| org-clock-jump-to-current-clock | SPC-a-o-C-j       | [[*Clocking Work Time][Clocking Work Time]]             |        |
+| org-clock-out                   | SPC-a-o-C-o       | [[*Clocking Work Time][Clocking Work Time]]             |        |
+| org-clock-in-last               | SPC-a-o-C-I       | [[*Clocking Work Time][Clocking Work Time]]             |        |
+| org-resolve-clocks              | SPC-a-o-C-r       | [[*Clocking Work Time][Clocking Work Time]]             |        |
+| org-refile                      | ,sr               | [[*Refiling and Archiving][Refiling and Archiving]]         |        |
+| org-archive-subtree-default     | ,sA               | [[*Refiling and Archiving][Refiling and Archiving]]         |        |
+| org-toggle-archive-tag          | ,sa               | [[*Refiling and Archiving][Refiling and Archiving]]         |        |
+| org-capture                     | SPC-a-o-c,SPC-C-c | [[*Capture][Capture]]                        |        |
+| org-capture-finalize            | C-c C-c           | [[*Capture][Capture]]                        |        |
+| org-capture-refile              | C-c C-w           | [[*Capture][Capture]]                        |        |
+| org-capture-kill                | C-c C-k           | [[*Capture][Capture]]                        |        |
+| org-attach                      | ,A                | [[*Attachments][Attachments]]                    |        |
+ 
 * Document Structure
   
 ** Headlines
@@ -572,3 +579,22 @@ SPC-a-o-C-j(org-clock-jump-to-current-clock)
 SPC-a-o-C-o(org-clock-out) Stop the clock.
 SPC-a-o-C-I(org-clock-in-last) Re-clock the last clocked task. 
 SPC-a-o-C-r(org-resolve-clocks)
+
+* Refiling and Archiving
+
+,sr(org-refile)
+,sA(org-archive-subtree-default)
+,sa(org-toggle-archive-tag)
+
+* Capture and Attachments
+
+** Capture
+
+SPC-C-c(org-capture)
+C-c C-c(org-capture-finalize)
+C-c C-w(org-capture-refile)
+C-c C-k(org-capture-kill)
+
+** Attachments
+
+,A(org-attach)
