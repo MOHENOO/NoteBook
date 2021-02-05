@@ -1,7 +1,6 @@
 * tips
 | functions                       | key               | link                           | remark |
 |---------------------------------+-------------------+--------------------------------+--------|
-| org-agenda                      | SPC-a-o-o         |                                |        |
 | org-ctrl-c-ctrl-c               | ,,                |                                |        |
 | org-cycle                       | TAB               | [[*Visibility Cycling][Visibility Cycling]]             |        |
 | org-global-cycle                | S-TAB             | [[*Visibility Cycling][Visibility Cycling]]             |        |
@@ -37,6 +36,7 @@
 | org-capture-refile              | C-c C-w           | [[*Capture][Capture]]                        |        |
 | org-capture-kill                | C-c C-k           | [[*Capture][Capture]]                        |        |
 | org-attach                      | ,A                | [[*Attachments][Attachments]]                    |        |
+| org-agenda                      | SPC-a-o-o         | [[*The Agenda Dispatcher][The Agenda Dispatcher]]          |        |
  
 * Document Structure
   
@@ -598,3 +598,27 @@ C-c C-k(org-capture-kill)
 ** Attachments
 
 ,A(org-attach)
+
+* Agenda Views
+
+Org can select items based on various criteria and display them in a separate buffer.
+Six different view types are provided:
+
+- an agenda that is like a calendar and shows information for specific dates,
+- a TODO list that covers all unfinished action items,
+- a match view, showings headlines based on the tags, properties, and TODO state associated with them,
+- a text search view that shows all entries from multiple files that contain specified keywords,
+- a stuck projects view showing projects that currently do not move along, and
+- custom views that are special searches and combinations of different views.
+  
+** Agenda Files
+
+The information to be shown is normally collected from all agenda files,
+the files listed in the variable org-agenda-files.
+If a directory is part of this list,
+all files with the extension '.org' in this directory are part of the list.
+
+** The Agenda Dispatcher
+
+SPC-a-o-o(org-agenda)
+
