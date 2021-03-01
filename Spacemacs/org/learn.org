@@ -621,4 +621,3 @@ all files with the extension '.org' in this directory are part of the list.
 ** The Agenda Dispatcher
 
 SPC-a-o-o(org-agenda)
-
