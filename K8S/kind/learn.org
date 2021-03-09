@@ -1,0 +1,42 @@
+* kind
+
+** set docker desktop proxy
+
+./Docker_Desktop_Proxy.png
+
+** install kind
+
+#+begin_src shell
+go get sigs.k8s.io/kind@v0.10.0
+kind create cluster --loglevel debug --name learn --config kind-config.yaml
+kubectl config  get-contexts
+kubectl cluster-info --context kind-learn
+kubectl config set-context kind-learn
+#+end_src
+
+** Ambassador
+
+#+begin_src shell
+kubectl apply -f https://github.com/datawire/ambassador-operator/releases/latest/download/ambassador-operator-crds.yaml
+kubectl apply -n ambassador -f https://github.com/datawire/ambassador-operator/releases/latest/download/ambassador-operator-kind.yaml
+kubectl wait --timeout=180s -n ambassador --for=condition=deployed ambassadorinstallations/ambassador
+kubectl apply -f https://kind.sigs.k8s.io/examples/ingress/usage.yaml
+kubectl annotate ingress example-ingress kubernetes.io/ingress.class=ambassador
+# should output "foo"
+curl localhost/foo
+# should output "bar"
+curl localhost/bar
+#+end_src
+
+** dashboard
+
+[[https://medium.com/@munza/local-kubernetes-with-kind-helm-dashboard-41152e4b3b3d][kind_dashboard]]
+
+#+begin_src shell
+helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
+helm install dashboard kubernetes-dashboard/kubernetes-dashboard -n kubernetes-dashboard --create-namespace
+kubectl proxy
+kubectl apply -f service-account.yaml
+kubectl describe serviceaccount admin-user -n kubernetes-dashboard
+kubectl describe secret admin-user-token-{{}} -n kubernetes-dashboard
+#+end_src
