@@ -1,0 +1,8 @@
+---
+apiVersion: getambassador.io/v2
+kind:  TCPMapping
+metadata:
+  name:  redis-tcp-mapping
+spec:
+  port: 80
+  service: redis:6379
